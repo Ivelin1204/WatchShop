@@ -4,10 +4,20 @@ import { Configurator } from './components/Configurator';
 import { Hero } from './components/Hero';
 import { Nav } from './components/Nav';
 import { Close, Delivery, Details, Footer, Movement, Profile, Workshop } from './components/Sections';
+import { useScrollReveal } from './lib/useScrollReveal';
 
 export default function App() {
   return (
     <CartProvider>
+      <Page />
+    </CartProvider>
+  );
+}
+
+function Page() {
+  useScrollReveal();
+  return (
+    <>
       <a className="skip" href="#main">
         Skip to content
       </a>
@@ -24,6 +34,6 @@ export default function App() {
       </main>
       <Footer />
       <CartDrawer />
-    </CartProvider>
+    </>
   );
 }
