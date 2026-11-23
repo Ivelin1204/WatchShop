@@ -116,10 +116,10 @@ export function WatchFace({ dial: dialId, strap, size = '40', view = 'full', liv
         {/* beads of rice: brushed outer links, three rows of polished rice links, dark gaps */}
         <pattern id={`${id}-links`} width="400" height="17" patternUnits="userSpaceOnUse" y="2">
           <rect x="0" y="0" width="400" height="17" fill="#2E3034" />
-          <rect x="135" y="1" width="30" height="15" rx="3" fill={`url(#${id}-lug)`} />
-          <rect x="235" y="1" width="30" height="15" rx="3" fill={`url(#${id}-lug)`} />
-          {[181, 200, 219].map((x) => (
-            <ellipse key={x} cx={x} cy="8.5" rx="8" ry="7" fill={`url(#${id}-rice)`} />
+          <rect x="136" y="1" width="31" height="15" rx="3" fill={`url(#${id}-lug)`} />
+          <rect x="231" y="1" width="33" height="15" rx="3" fill={`url(#${id}-lug)`} />
+          {[168, 189, 210].map((x) => (
+            <rect key={x} x={x} y="1" width="20" height="15" rx="6.5" fill={`url(#${id}-rice)`} />
           ))}
         </pattern>
         <pattern id={`${id}-grooves`} width="400" height="12" patternUnits="userSpaceOnUse">

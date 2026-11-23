@@ -342,8 +342,9 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
 
   const ROW_PITCH = 2.9;
   const outerGeo = new RoundedBoxGeometry(4.6, 2.7, 2.6, 3, 0.55);
-  const riceGeo = new THREE.SphereGeometry(1, 24, 16);
-  riceGeo.scale(1.05, 1.32, 0.78); // a grain of rice, long along the bracelet
+  // centre links: long polished pills packed tight, so the middle of the
+  // bracelet reads as one smooth surface with fine dark seams between links
+  const riceGeo = new RoundedBoxGeometry(3.15, 2.78, 2.5, 4, 0.9);
   const rows: { pos: THREE.Vector3; tan: THREE.Vector3; taper: number; i: number }[] = [];
   for (const sy of [-1, 1]) {
     const curve = braceletCurve(sy);
@@ -375,7 +376,7 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
     const place = (dx: number, lift: number) =>
       m.makeBasis(x, y, z).scale(new THREE.Vector3(r.taper, 1, 1)).setPosition(r.pos.clone().addScaledVector(X, dx * r.taper).addScaledVector(z, lift));
     [-1, 1].forEach((side, j) => outers.setMatrixAt(i * 2 + j, place(side * 7.3, 0)));
-    [-2.75, 0, 2.75].forEach((dx, j) => rice.setMatrixAt(i * 3 + j, place(dx, 0.35)));
+    [-3.32, 0, 3.32].forEach((dx, j) => rice.setMatrixAt(i * 3 + j, place(dx, 0.1)));
   });
   watch.add(outers, rice);
 
