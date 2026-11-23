@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { dialById, priceFor } from '../data/product';
+import { MODEL, dialById } from '../data/product';
 import { money } from '../lib/format';
 import { delay } from '../lib/style';
 import type { WatchScene } from '../three/watchScene';
@@ -14,31 +14,39 @@ export function Hero() {
     <section className="hero" id="top" data-enter>
       <div className="wrap hero__grid">
         <div className="hero__copy">
-          <p className="eyebrow enter" style={delay(0)}>
-            Meridian Chronograph · Made in Sofia
+          <p className="hero__tag enter" style={delay(0)}>
+            <span className="hero__new">New</span>
+            Meridian Chronograph
           </p>
           <h1 className="hero__title enter" style={delay(80)}>
-            An automatic chronograph <em>in 40&nbsp;mm of steel.</em>
+            A chronograph <em>for every day.</em>
           </h1>
           <p className="hero__lead enter" style={delay(160)}>
-            Two counters, a date and a Swiss automatic movement, behind sapphire front and back and sealed to
-            100&nbsp;m. Built in small batches and timed by hand before it ships.
+            Swiss automatic, two counters and a date in 40&nbsp;mm of steel. Assembled and timed by hand in Sofia.
           </p>
           <div className="hero__actions enter" style={delay(240)}>
             <a className="btn btn--solid" href="#buy">
               Choose your Meridian
             </a>
-            <a className="btn btn--ghost" href="#details">
-              See the details
-            </a>
+            <p className="hero__price">
+              From <strong>{money(MODEL.basePrice)}</strong>
+              <span>Free EU delivery · 5-year warranty</span>
+            </p>
           </div>
-          <ul className="hero__facts enter" style={delay(320)}>
-            <li>
-              <strong>{money(priceFor('bracelet'))}</strong> on the steel bracelet
-            </li>
-            <li>Free EU delivery</li>
-            <li>5-year warranty</li>
-          </ul>
+          <dl className="hero__specs enter" style={delay(320)}>
+            <div>
+              <dt>40 mm</dt>
+              <dd>steel case</dd>
+            </div>
+            <div>
+              <dt>100 m</dt>
+              <dd>water resistance</dd>
+            </div>
+            <div>
+              <dt>42 h</dt>
+              <dd>power reserve</dd>
+            </div>
+          </dl>
         </div>
 
         <div className="hero__stage enter enter--stage" style={delay(120)}>

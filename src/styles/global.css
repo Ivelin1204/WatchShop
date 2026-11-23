@@ -456,19 +456,102 @@ em {
   padding-bottom: 48px;
 }
 
-.hero__title {
-  margin-top: 22px;
-  font-size: clamp(44px, 5.6vw, 84px);
-  line-height: 0.98;
+.hero__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 16px 6px 6px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 14px;
   font-weight: 500;
-  letter-spacing: -0.045em;
+  color: var(--muted);
+}
+
+.hero__new {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.hero__title {
+  margin-top: 28px;
+  font-size: clamp(48px, 6.2vw, 96px);
+  line-height: 0.95;
+  font-weight: 400;
+  letter-spacing: -0.05em;
   text-wrap: balance;
 }
 
 .hero__title em {
   display: block;
   color: var(--accent-ink);
+  letter-spacing: -0.025em;
+  padding-right: 0.05em;
+}
+
+.hero__price {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 15px;
+  color: var(--muted);
+}
+
+.hero__price strong {
+  color: var(--ink);
+  font-size: 22px;
+  font-weight: 600;
   letter-spacing: -0.02em;
+}
+
+.hero__price {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 8px;
+  max-width: 16em;
+}
+
+.hero__price span {
+  flex-basis: 100%;
+  font-size: 13px;
+}
+
+.hero__specs {
+  margin: 48px 0 0;
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  justify-content: start;
+  gap: 0;
+}
+
+.hero__specs div {
+  padding: 4px 32px 4px 0;
+  margin-right: 32px;
+  border-right: 1px solid var(--line);
+}
+
+.hero__specs div:last-child {
+  border-right: 0;
+  margin-right: 0;
+}
+
+.hero__specs dt {
+  font-size: clamp(26px, 2.4vw, 36px);
+  font-weight: 400;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+}
+
+.hero__specs dd {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--muted);
 }
 
 .hero__lead {
@@ -479,10 +562,11 @@ em {
 }
 
 .hero__actions {
-  margin-top: 34px;
+  margin-top: 36px;
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  align-items: center;
+  gap: 16px 28px;
 }
 
 .hero__facts {
@@ -1852,7 +1936,14 @@ em {
     font-size: 16px;
   }
   .hero__title {
-    font-size: 42px;
+    font-size: 46px;
+  }
+  .hero__specs {
+    margin-top: 32px;
+  }
+  .hero__specs div {
+    padding-right: 18px;
+    margin-right: 18px;
   }
   .hero__actions .btn {
     flex: 1 1 100%;
