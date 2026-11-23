@@ -5,9 +5,9 @@ import { money } from '../lib/format';
 import { WatchFace } from './watch/WatchFace';
 
 export function Configurator() {
-  const [dial, setDial] = useState<DialId>('navy');
-  const [strap, setStrap] = useState<StrapId>('leather');
-  const [size, setSize] = useState<SizeId>('39');
+  const [dial, setDial] = useState<DialId>('slate');
+  const [strap, setStrap] = useState<StrapId>('bracelet');
+  const [size, setSize] = useState<SizeId>(SIZES[SIZES.length - 1].id);
   const [added, setAdded] = useState(false);
   const { add, setOpen } = useCart();
 
@@ -31,7 +31,7 @@ export function Configurator() {
             size={size}
             view="head"
             className="config__watch"
-            title={`Meridian ${size} with ${dialById(dial).name.toLowerCase()} dial on ${strapById(strap).name.toLowerCase()}`}
+            title={`${MODEL.name} with ${dialById(dial).name.toLowerCase()} dial on ${strapById(strap).name.toLowerCase()}`}
           />
         </div>
 
@@ -74,6 +74,7 @@ export function Configurator() {
             </div>
           </fieldset>
 
+          {SIZES.length > 1 && (
           <fieldset className="opt">
             <legend>
               Case <span>{size} mm</span>
@@ -84,12 +85,12 @@ export function Configurator() {
                   <input type="radio" name="size" value={s.id} checked={size === s.id} onChange={() => setSize(s.id)} />
                   <span>
                     {s.name}
-                    <small>{s.id === '36' ? 'wrists under 16 cm' : 'wrists 16 cm and up'}</small>
                   </span>
                 </label>
               ))}
             </div>
           </fieldset>
+          )}
 
           <button className={`btn btn--solid btn--wide ${added ? 'is-done' : ''}`} onClick={onAdd}>
             <span className="btn__label">{added ? 'Added to your bag' : `Add to bag — ${money(price)}`}</span>

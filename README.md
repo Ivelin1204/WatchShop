@@ -1,6 +1,6 @@
-# Merid — Meridian 39 watch store
+# Merid — Meridian Chronograph watch store
 
-React 19 + TypeScript + Vite. One-product storefront with a live configurator, bag and checkout form.
+React 19 + TypeScript + Vite + Three.js. One-product storefront for an automatic chronograph with a live configurator, bag and checkout form.
 
 ## Run
 

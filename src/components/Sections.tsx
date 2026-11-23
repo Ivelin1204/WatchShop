@@ -11,13 +11,13 @@ export function Details() {
     <section className="section details" id="details">
       <div className="wrap details__grid">
         <div className="details__macro">
-          <WatchFace dial="forest" strap="leather" view="macro" title="Close-up of the forest dial: applied markers, lume and the date window" />
+          <WatchFace dial="midnight" strap="bracelet" view="macro" title="Close-up of the midnight dial: the 30-minute counter, applied markers and the pushers" />
         </div>
         <div className="details__copy">
-          <h2 className="h2">A dial you can read at a glance, even in the dark.</h2>
+          <h2 className="h2">A timer you can read at a glance, even in the dark.</h2>
           <p className="lead">
-            Raised steel markers catch the light by day. Their lume and the hands glow for hours after sunset. The
-            orange seconds hand is the only colour on the dial, so you always find it.
+            The sub-dials sit a shade darker than the dial, cut with fine circular grooves. The orange hand is the
+            timer: it rests at 12 until you press start, so it never hides the time.
           </p>
           <dl className="specs">
             {SPECS.map((s) => (
@@ -37,22 +37,22 @@ export function Profile() {
   return (
     <section className="section profile" id="case">
       <div className="wrap">
-        <h2 className="h2 profile__title">11.2&nbsp;mm thin, so it slides under a shirt cuff.</h2>
+        <h2 className="h2 profile__title">12.9&nbsp;mm thin, a slim case for a chronograph.</h2>
         <div className="profile__stage">
           <WatchSide className="profile__side" />
         </div>
         <ul className="figures">
           <li>
-            <strong>46 mm</strong>
+            <strong>47 mm</strong>
             <span>lug to lug, curved to sit flat</span>
           </li>
           <li>
-            <strong>78 g</strong>
-            <span>on the leather strap</span>
+            <strong>138 g</strong>
+            <span>on the steel bracelet</span>
           </li>
           <li>
             <strong>20 mm</strong>
-            <span>strap width, quick-release</span>
+            <span>bracelet, tapering to 16 mm</span>
           </li>
         </ul>
       </div>
@@ -68,9 +68,9 @@ export function Movement() {
           <WatchBack className="movement__back" />
         </div>
         <div className="movement__copy">
-          <h2 className="h2">A Swiss automatic you can watch through the back.</h2>
+          <h2 className="h2">A Swiss chronograph calibre you can watch through the back.</h2>
           <p className="lead">
-            Turn the Meridian over and the movement is behind sapphire. The rotor swings as your wrist moves and
+            Turn the watch over and the movement is behind sapphire. The rotor swings as your wrist moves and
             winds the spring, so it never needs a battery. Hover the caseback to set it going.
           </p>
           <ul className="figures figures--dark">
@@ -79,11 +79,11 @@ export function Movement() {
               <span>beats an hour, so the seconds hand sweeps</span>
             </li>
             <li>
-              <strong>38 h</strong>
+              <strong>42 h</strong>
               <span>power reserve off the wrist</span>
             </li>
             <li>
-              <strong>25</strong>
+              <strong>27</strong>
               <span>jewels at the points of wear</span>
             </li>
           </ul>
@@ -207,12 +207,12 @@ export function Close() {
     <section className="section close" id="order">
       <div className="wrap close__inner">
         <h2 className="close__title">
-          Meridian 39.
+          Meridian Chronograph.
           <br />
           <em>From {money(MODEL.basePrice)}.</em>
         </h2>
         <div className="close__side">
-          <WatchFace dial="bone" strap="bracelet" view="head" className="close__watch" title="Meridian 39 with bone dial on the steel bracelet" />
+          <WatchFace dial="bone" strap="bracelet" view="head" className="close__watch" title="Meridian Chronograph with bone dial on the steel bracelet" />
           <a className="btn btn--solid" href="#buy">
             Choose your Meridian
           </a>

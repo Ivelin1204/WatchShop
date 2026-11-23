@@ -112,7 +112,7 @@ export function WatchBack({ className }: { className?: string }) {
           <path d="M 200 200 L 104 200 A 96 96 0 0 1 296 200 Z" fill="none" stroke="#fff" strokeOpacity="0.4" />
           <text fontSize="9" fontWeight="700" letterSpacing="3" fill="#4B4E52" fontFamily="Manrope Variable, Manrope, sans-serif">
             <textPath href={`#${id}-arc`} startOffset="50%" textAnchor="middle">
-              MERID · SOFIA · 25 JEWELS
+              MERID · SOFIA · 27 JEWELS
             </textPath>
           </text>
           <circle cx="200" cy="200" r="13" fill={`url(#${id}-polish)`} />

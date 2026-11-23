@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useCart } from '../cart/CartContext';
-import { BRAND, dialById, strapById } from '../data/product';
+import { BRAND, MODEL, dialById, strapById } from '../data/product';
 import { startCheckout, type ShippingDetails } from '../lib/checkout';
 import { money } from '../lib/format';
 import { Select } from './Select';
@@ -132,15 +132,15 @@ export function CartDrawer() {
                     </div>
                     <div className="line__info">
                       <p className="line__name">
-                        Meridian {i.size} · {dialById(i.dial).name}
+                        {MODEL.short} · {dialById(i.dial).name}
                       </p>
                       <p className="line__meta">{strapById(i.strap).name}</p>
                       <div className="qty">
-                        <button onClick={() => setQty(i.key, i.qty - 1)} aria-label={`One fewer ${dialById(i.dial).name} Meridian`}>
+                        <button onClick={() => setQty(i.key, i.qty - 1)} aria-label={`One fewer ${dialById(i.dial).name} ${MODEL.short}`}>
                           −
                         </button>
                         <span aria-live="polite">{i.qty}</span>
-                        <button onClick={() => setQty(i.key, i.qty + 1)} aria-label={`One more ${dialById(i.dial).name} Meridian`} disabled={i.qty >= 5}>
+                        <button onClick={() => setQty(i.key, i.qty + 1)} aria-label={`One more ${dialById(i.dial).name} ${MODEL.short}`} disabled={i.qty >= 5}>
                           +
                         </button>
                       </div>

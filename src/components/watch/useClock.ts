@@ -48,6 +48,8 @@ export function useWatchHands(
   cx: number,
   cy: number,
   live: boolean,
+  /** centre of the running-seconds hand when it sits in a sub-dial */
+  sec: [number, number] = [cx, cy],
 ) {
   const reduced = usePrefersReducedMotion();
 
@@ -55,7 +57,7 @@ export function useWatchHands(
     const set = (a: { h: number; m: number; s: number }) => {
       hands.hour.current?.setAttribute('transform', `rotate(${a.h} ${cx} ${cy})`);
       hands.minute.current?.setAttribute('transform', `rotate(${a.m} ${cx} ${cy})`);
-      hands.second.current?.setAttribute('transform', `rotate(${a.s} ${cx} ${cy})`);
+      hands.second.current?.setAttribute('transform', `rotate(${a.s} ${sec[0]} ${sec[1]})`);
     };
 
     if (!live || reduced) {
@@ -84,5 +86,6 @@ export function useWatchHands(
       cancelAnimationFrame(raf);
       io.disconnect();
     };
-  }, [live, reduced, cx, cy, container, hands.hour, hands.minute, hands.second]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [live, reduced, cx, cy, sec[0], sec[1], container, hands.hour, hands.minute, hands.second]);
 }

@@ -16,7 +16,7 @@ type Action =
   | { type: 'remove'; key: string }
   | { type: 'clear' };
 
-const STORAGE_KEY = 'merid.cart.v1';
+const STORAGE_KEY = 'merid.cart.v2'; // v2: chronograph line-up
 const MAX_QTY = 5;
 
 function reducer(items: CartItem[], a: Action): CartItem[] {

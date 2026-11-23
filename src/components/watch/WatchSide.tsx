@@ -4,7 +4,7 @@ import { useSvgId } from './useClock';
 export function WatchSide({ className }: { className?: string }) {
   const id = useSvgId('s');
   return (
-    <svg className={className} viewBox="0 0 640 260" role="img" aria-label="Meridian case seen from the side, 11.2 mm thick">
+    <svg className={className} viewBox="0 0 640 260" role="img" aria-label="Meridian Chronograph case seen from the side, 12.9 mm thick">
       <defs>
         <linearGradient id={`${id}-band`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#F4F4F2" />

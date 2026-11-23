@@ -12,20 +12,20 @@ import { usePrefersReducedMotion } from './watch/useClock';
 
 const STEPS = [
   {
-    title: 'A sunburst dial under domed sapphire.',
-    body: 'Applied steel markers stand off the dial and catch the light. Their lume keeps glowing for hours after dark.',
+    title: 'Two counters and a timer you read at a glance.',
+    body: 'Running seconds sit at 9, the 30-minute counter at 3. The orange hand rests at 12 until you start the timer.',
   },
   {
-    title: 'A screw-down crown, sealed to 100 m.',
-    body: 'Unscrew it to wind the movement by hand or set the date, then screw it back down before you swim.',
+    title: 'Start, stop, reset.',
+    body: 'The top pusher starts and stops the timer, the lower one sends it back to zero. The crown between them screws down to 100 m.',
   },
   {
-    title: 'The movement, on show through the back.',
+    title: 'The chronograph calibre, on show through the back.',
     body: 'A sapphire caseback shows the rotor that winds the spring every time your wrist moves.',
   },
   {
-    title: 'Curved lugs that sit flat on the wrist.',
-    body: 'The case slopes down into the strap, so the watch wears closer than its 39 mm suggests.',
+    title: 'A steel bracelet with polished centre links.',
+    body: 'Solid links taper from 20 to 16 mm and wrap close round the wrist, so the watch sits flat and stays put.',
   },
 ];
 
@@ -65,7 +65,7 @@ export function Showcase3D() {
   const sceneRef = useRef<WatchScene | null>(null);
   const reduced = usePrefersReducedMotion();
   const [step, setStep] = useState(0);
-  const [dial, setDial] = useState<DialId>('navy');
+  const [dial, setDial] = useState<DialId>('slate');
   const [failed, setFailed] = useState(false);
   const [ready, setReady] = useState(false);
 
@@ -181,7 +181,7 @@ export function Showcase3D() {
                 <button
                   key={s.title}
                   className={i === step ? 'is-on' : ''}
-                  aria-label={['Dial', 'Crown side', 'Caseback', 'Other side'][i]}
+                  aria-label={['Dial', 'Crown and pushers', 'Caseback', 'Bracelet side'][i]}
                   aria-pressed={i === step}
                   onClick={() => goTo(i)}
                 >
@@ -193,9 +193,9 @@ export function Showcase3D() {
 
           <div className="showcase__stage">
             {failed ? (
-              <WatchFace dial={dial} strap="leather" view="full" className="showcase__fallback" />
+              <WatchFace dial={dial} strap="bracelet" view="full" className="showcase__fallback" />
             ) : (
-              <canvas ref={canvas} className={`showcase__canvas ${ready ? 'is-ready' : ''}`} role="img" aria-label={`3D model of the Meridian 39 with ${dialById(dial).name.toLowerCase()} dial, turning as you scroll`} />
+              <canvas ref={canvas} className={`showcase__canvas ${ready ? 'is-ready' : ''}`} role="img" aria-label={`3D model of the Meridian Chronograph with ${dialById(dial).name.toLowerCase()} dial, turning as you scroll`} />
             )}
             <div className="showcase__swatches" role="radiogroup" aria-label="Dial colour">
               {DIALS.map((d) => (
