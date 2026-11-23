@@ -18,9 +18,22 @@ const DATE_Y = -10.7;
 const ORANGE = '#d2591f';
 const LUME = '#ede8d6';
 
+export interface WatchSceneOptions {
+  /** how many millimetres of watch must fit the frame, tall and wide */
+  fit?: { h: number; w: number };
+  /** starting pose, eased from here to the first target */
+  initial?: { turn: number; tilt: number };
+  /** resting tilt towards the camera, in radians */
+  tilt?: number;
+  /** a slow float up and down */
+  float?: boolean;
+}
+
 export interface WatchScene {
   /** target turn around the vertical axis, in radians (0 = dial to camera) */
   setTurn: (radians: number) => void;
+  /** target tilt around the horizontal axis, in radians */
+  setTilt: (radians: number) => void;
   setDial: (dial: Dial) => void;
   setMovementTexture: (img: CanvasImageSource) => void;
   setActive: (active: boolean) => void;
@@ -28,7 +41,7 @@ export interface WatchScene {
   dispose: () => void;
 }
 
-export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced: boolean): WatchScene {
+export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced: boolean, opts: WatchSceneOptions = {}): WatchScene {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -305,8 +318,8 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
   }
 
   /* ───── bracelet: beads of rice ───── */
-  // five rows of links: flat brushed outer links and three rows of small
-  // polished "rice" links between them, on a dark core that shows in the gaps.
+  // five rows of links: flat brushed outer links and three rows of wide
+  // polished centre links, packed tight.
   // A solid end link is fitted to the case between the lugs.
   const braceletCurve = (sy: number) =>
     new THREE.CatmullRomCurve3(
@@ -354,14 +367,6 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
       const u = (i * ROW_PITCH + ROW_PITCH / 2) / len;
       rows.push({ pos: curve.getPointAt(u), tan: curve.getTangentAt(u), taper: 1 - 0.2 * u, i });
     }
-    // dark core under the links, seen in the gaps
-    const core = new THREE.Shape();
-    core.moveTo(-5.2, -0.5);
-    core.lineTo(5.2, -0.5);
-    core.lineTo(5.2, 0.5);
-    core.lineTo(-5.2, 0.5);
-    core.closePath();
-    watch.add(new THREE.Mesh(new THREE.ExtrudeGeometry(core, { steps: 80, extrudePath: curve, bevelEnabled: false }), darkMetal));
   }
   const outers = new THREE.InstancedMesh(outerGeo, brushed, rows.length * 2);
   const rice = new THREE.InstancedMesh(riceGeo, polished, rows.length * 3);
@@ -536,10 +541,13 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
 
   /* ───── loop ───── */
   let turnTarget = 0;
-  let turn = 0;
+  let tiltTarget = opts.tilt ?? 0.1;
+  let turn = reduced ? 0 : (opts.initial?.turn ?? 0);
+  let tilt = reduced ? tiltTarget : (opts.initial?.tilt ?? tiltTarget);
   let active = true;
   let raf = 0;
-  const baseTilt = 0.1;
+  const floating = !!opts.float && !reduced;
+  const t0 = performance.now();
 
   const setHands = () => {
     const d = new Date();
@@ -554,11 +562,14 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
 
   const frameLoop = () => {
     raf = 0;
-    turn += (turnTarget - turn) * (reduced ? 1 : 0.09);
-    watch.rotation.set(baseTilt, turn, 0);
+    const k = reduced ? 1 : 0.07;
+    turn += (turnTarget - turn) * k;
+    tilt += (tiltTarget - tilt) * k;
+    watch.rotation.set(tilt, turn, 0);
+    if (floating) watch.position.y = Math.sin((performance.now() - t0) / 1400) * 0.9;
     setHands();
     renderer.render(scene, camera);
-    if (active && (!reduced || Math.abs(turnTarget - turn) > 0.0005)) raf = requestAnimationFrame(frameLoop);
+    if (active && (!reduced || Math.abs(turnTarget - turn) + Math.abs(tiltTarget - tilt) > 0.0005)) raf = requestAnimationFrame(frameLoop);
   };
   const kick = () => {
     if (!raf) raf = requestAnimationFrame(frameLoop);
@@ -571,8 +582,8 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     // keep the whole watch (about 90 mm tall, 50 mm wide) in frame at any aspect
-    const fitH = 100;
-    const fitW = 66;
+    const fitH = opts.fit?.h ?? 100;
+    const fitW = opts.fit?.w ?? 66;
     const vFov = THREE.MathUtils.degToRad(camera.fov);
     const distH = fitH / 2 / Math.tan(vFov / 2);
     const distW = fitW / 2 / (Math.tan(vFov / 2) * camera.aspect);
@@ -589,6 +600,10 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
   return {
     setTurn: (r) => {
       turnTarget = r;
+      kick();
+    },
+    setTilt: (r) => {
+      tiltTarget = r;
       kick();
     },
     setDial: (d) => {

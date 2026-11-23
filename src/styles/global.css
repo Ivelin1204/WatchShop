@@ -538,6 +538,84 @@ em {
   isolation: isolate;
 }
 
+.hero__canvas {
+  position: absolute;
+  inset: var(--nav-h) 0 0;
+  width: 100%;
+  height: calc(100% - var(--nav-h));
+  opacity: 0;
+  transition: opacity 1.2s var(--ease) 0.2s;
+}
+
+.hero__canvas.is-ready {
+  opacity: 1;
+}
+
+/* the big scale of seconds behind the watch */
+.ring {
+  position: absolute;
+  left: 50%;
+  top: calc(50% + var(--nav-h) / 2);
+  width: min(86svh, 112%);
+  height: auto;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  color: var(--ink);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.ring__sec {
+  transform-origin: 500px 500px;
+  transform-box: view-box;
+  transition: transform 0.45s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+/* scroll cue into the 3D section */
+.hero__cue {
+  position: absolute;
+  bottom: 28px;
+  left: max(var(--pad), calc((100vw - var(--wrap)) / 2 + var(--pad)));
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 44px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  transition: color 0.25s var(--ease);
+}
+
+.hero__cue:hover {
+  color: var(--ink);
+}
+
+.hero__cue-line {
+  position: relative;
+  width: 1px;
+  height: 36px;
+  background: rgb(var(--ink-rgb) / 0.2);
+  overflow: hidden;
+}
+
+.hero__cue-line::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: -40%;
+  width: 1px;
+  height: 40%;
+  background: var(--accent);
+  animation: cue 2.4s var(--ease) infinite;
+}
+
+@keyframes cue {
+  to {
+    top: 100%;
+  }
+}
+
 .hero__watch {
   position: absolute;
   left: 50%;
@@ -1733,6 +1811,15 @@ em {
   }
   .hero__facts {
     margin-top: 24px;
+  }
+  .hero__cue {
+    display: none;
+  }
+  .hero__stage {
+    min-height: 48svh;
+  }
+  .ring {
+    width: min(150%, 70svh);
   }
 
   .config__grid,
