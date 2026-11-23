@@ -247,18 +247,67 @@ export function Movement() {
 }
 
 const STATEMENT =
-  'Every Meridian is assembled and regulated by hand in our workshop in Sofia, then timed for five days in five positions before it leaves the bench.';
+  'Every Meridian is assembled and regulated by hand in our workshop in Sofia, then timed for five days in five positions.';
 
-/** Type-led moment: the sentence fills in word by word as the section passes. */
+type Pose = 'dial-up' | 'dial-down' | 'crown-up' | 'crown-down' | 'crown-left';
+const DAYS: { pose: Pose; name: string }[] = [
+  { pose: 'dial-up', name: 'Dial up' },
+  { pose: 'dial-down', name: 'Dial down' },
+  { pose: 'crown-up', name: 'Crown up' },
+  { pose: 'crown-down', name: 'Crown down' },
+  { pose: 'crown-left', name: 'Crown left' },
+];
+
+/** A small line drawing of the watch in one test position. */
+function PoseIcon({ pose }: { pose: Pose }) {
+  if (pose === 'dial-up' || pose === 'dial-down') {
+    return (
+      <svg viewBox="0 0 64 64" aria-hidden="true" className="pose">
+        <circle cx="32" cy="32" r="22" fill="none" stroke="currentColor" strokeWidth="2" />
+        <rect x="54" y="29" width="5" height="6" rx="1.5" fill="currentColor" />
+        {pose === 'dial-up' ? (
+          <g stroke="currentColor" strokeLinecap="round">
+            {Array.from({ length: 12 }, (_, i) => (
+              <line key={i} x1="32" y1="14" x2="32" y2={i % 3 === 0 ? 18 : 16.5} strokeWidth="1.6" transform={`rotate(${i * 30} 32 32)`} />
+            ))}
+            <line x1="32" y1="32" x2="32" y2="21" strokeWidth="2.2" />
+            <line x1="32" y1="32" x2="40" y2="36" strokeWidth="2.2" />
+            <line x1="32" y1="36" x2="32" y2="17" strokeWidth="1" stroke="var(--accent)" />
+          </g>
+        ) : (
+          <g>
+            <circle cx="32" cy="32" r="15" fill="none" stroke="currentColor" strokeWidth="1.4" strokeDasharray="2 3" />
+            <path d="M 32 32 L 19 32 A 13 13 0 0 1 45 32 Z" fill="currentColor" opacity="0.5" />
+            <circle cx="32" cy="32" r="2.4" fill="var(--accent)" />
+          </g>
+        )}
+      </svg>
+    );
+  }
+  const turn = pose === 'crown-up' ? -90 : pose === 'crown-down' ? 90 : 180;
+  return (
+    <svg viewBox="0 0 64 64" aria-hidden="true" className="pose">
+      <g transform={`rotate(${turn} 32 32)`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
+        {/* side profile, crown pointing right before the turn */}
+        <rect x="12" y="27" width="38" height="11" rx="3" />
+        <path d="M15 27 Q32 19 47 27" />
+        <rect x="50" y="29" width="5" height="7" rx="1.5" fill="currentColor" />
+        <path d="M12 31 Q6 33 5 40 M50 31" />
+      </g>
+    </svg>
+  );
+}
+
+/** The regulation story: the sentence fills in word by word while the five days of timing light up in turn. */
 export function Workshop() {
   const ref = useRef<HTMLElement>(null);
   const reduced = usePrefersReducedMotion();
   const words = STATEMENT.split(' ');
-  const [lit, setLit] = useState(reduced ? words.length : 0);
+  const [p, setP] = useState(reduced ? 1 : 0);
 
   useEffect(() => {
     if (reduced) {
-      setLit(words.length);
+      setP(1);
       return;
     }
     let raf = 0;
@@ -269,11 +318,10 @@ export function Workshop() {
         if (!el) return;
         const r = el.getBoundingClientRect();
         const vh = window.innerHeight;
-        // 0 when the section's top reaches 85% of the screen, 1 when its middle reaches 40%
+        // 0 as the section's top reaches 85% of the screen, 1 just after it settles under the menu bar
         const start = vh * 0.85;
-        const end = vh * 0.4 - r.height / 2;
-        const p = Math.min(1, Math.max(0, (start - r.top) / (start - end)));
-        setLit(Math.round(p * words.length));
+        const end = vh * 0.85 - r.height * 0.85;
+        setP(Math.min(1, Math.max(0, (start - r.top) / (start - end))));
       });
     };
     on();
@@ -284,7 +332,12 @@ export function Workshop() {
       window.removeEventListener('scroll', on);
       window.removeEventListener('resize', on);
     };
-  }, [reduced, words.length]);
+  }, [reduced]);
+
+  // the words fill in over the first half, the days over the second
+  const lit = Math.round(Math.min(1, p / 0.5) * words.length);
+  const dayP = Math.min(1, Math.max(0, (p - 0.45) / 0.5));
+  const day = Math.min(DAYS.length, Math.floor(dayP * DAYS.length + 0.001) + (dayP > 0 ? 1 : 0));
 
   return (
     <section className="section workshop" id="workshop" ref={ref}>
@@ -297,6 +350,25 @@ export function Workshop() {
             </span>
           ))}
         </p>
+
+        <div className="timing">
+          <div className="timing__track" aria-hidden="true">
+            <span style={{ transform: `scaleX(${dayP})` }} />
+          </div>
+          <ol className="timing__days">
+            {DAYS.map((d, i) => (
+              <li key={d.pose} className={i < day ? 'is-on' : ''}>
+                <span className="timing__dot" aria-hidden="true" />
+                <PoseIcon pose={d.pose} />
+                <span className="timing__day">Day {i + 1}</span>
+                <span className="timing__pose">{d.name}</span>
+              </li>
+            ))}
+          </ol>
+          <p className={`timing__result ${day >= DAYS.length ? 'is-on' : ''}`}>
+            <strong>Within −4 and +6 seconds a day</strong>, or it goes back on the bench.
+          </p>
+        </div>
       </div>
     </section>
   );
