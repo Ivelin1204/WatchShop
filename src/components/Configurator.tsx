@@ -1,8 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useCart } from '../cart/CartContext';
 import { DIALS, MODEL, SIZES, STRAPS, dialById, priceFor, strapById, type DialId, type SizeId, type StrapId } from '../data/product';
 import { money } from '../lib/format';
 import { WatchFace } from './watch/WatchFace';
+
+/** Other sections can preselect a dial in the builder by dispatching this event. */
+export const DIAL_EVENT = 'merid:choose-dial';
 
 export function Configurator() {
   const [dial, setDial] = useState<DialId>('slate');
@@ -12,6 +15,12 @@ export function Configurator() {
   const { add, setOpen } = useCart();
 
   const price = priceFor(strap);
+
+  useEffect(() => {
+    const on = (e: Event) => setDial((e as CustomEvent<DialId>).detail);
+    window.addEventListener(DIAL_EVENT, on);
+    return () => window.removeEventListener(DIAL_EVENT, on);
+  }, []);
 
   const onAdd = () => {
     add(dial, strap, size);

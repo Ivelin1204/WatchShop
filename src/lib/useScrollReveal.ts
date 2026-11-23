@@ -21,11 +21,10 @@ const TEXT = [
   '.parts li',
   '.promises li',
   '.faq__item',
-  '.close__title',
   '.footer__grid > div',
 ];
 
-const MEDIA = ['.config__stage', '.details__stage', '.profile__stage', '.movement__stage', '.close__side'];
+const MEDIA = ['.config__stage', '.details__stage', '.profile__stage', '.movement__stage', '.lineup__row > li'];
 
 const STAGGER_MS = 90;
 const MAX_STAGGER = 6;

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { BRAND, FAQ, MODEL, SPECS } from '../data/product';
+import { BRAND, DIALS, FAQ, MODEL, SPECS, priceFor, type DialId } from '../data/product';
+import { DIAL_EVENT } from './Configurator';
 import { money } from '../lib/format';
 import { usePrefersReducedMotion } from './watch/useClock';
 import { LogoMark } from './Logo';
@@ -354,21 +355,41 @@ export function Delivery() {
   );
 }
 
+/** Closing lineup: all three dials side by side; choosing one preselects it in the builder. */
 export function Close() {
+  const choose = (dial: DialId) => {
+    window.dispatchEvent(new CustomEvent<DialId>(DIAL_EVENT, { detail: dial }));
+    document.getElementById('buy')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
-    <section className="section close" id="order">
-      <div className="wrap close__inner">
-        <h2 className="close__title">
-          Meridian Chronograph.
-          <br />
-          <em>From {money(MODEL.basePrice)}.</em>
-        </h2>
-        <div className="close__side">
-          <WatchFace dial="bone" strap="bracelet" view="head" className="close__watch" title="Meridian Chronograph with bone dial on the steel bracelet" />
-          <a className="btn btn--solid" href="#buy">
-            Choose your Meridian
-          </a>
+    <section className="section lineup" id="order">
+      <div className="wrap">
+        <div className="lineup__head">
+          <h2 className="h2">Three dials. Pick yours.</h2>
+          <p className="lead">
+            From {money(MODEL.basePrice)} on leather or rubber, {money(priceFor('bracelet'))} on the steel bracelet.
+            Free delivery across the EU.
+          </p>
         </div>
+        <ul className="lineup__row">
+          {DIALS.map((d) => (
+            <li key={d.id}>
+              <button className="lineup__card" onClick={() => choose(d.id)}>
+                <span className="lineup__watch">
+                  <WatchFace dial={d.id} strap="bracelet" view="head" title={`Meridian Chronograph with ${d.name.toLowerCase()} dial`} />
+                </span>
+                <span className="lineup__name">{d.name}</span>
+                <span className="lineup__cta">
+                  Choose {d.name}
+                  <svg viewBox="0 0 16 16" aria-hidden="true">
+                    <path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.6" />
+                  </svg>
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );
