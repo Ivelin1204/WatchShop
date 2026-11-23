@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, type KeyboardEvent, type RefObject } from 'react';
 import { dialById, sizeById, type DialId, type SizeId, type StrapId } from '../../data/product';
 import { useSvgId, useWatchHands } from './useClock';
 
@@ -19,12 +19,13 @@ const SUB_R_SIZE = 27;
 const FONT = 'Manrope Variable, Manrope, sans-serif';
 const ORANGE = '#D2591F';
 
-export type WatchView = 'full' | 'head' | 'macro';
+export type WatchView = 'full' | 'head' | 'macro' | 'dial';
 
 const VIEWBOX: Record<WatchView, string> = {
   full: '0 0 400 800',
   head: '40 215 320 370',
   macro: '214 362 170 170',
+  dial: '52 252 316 296',
 };
 
 interface Props {
@@ -35,11 +36,18 @@ interface Props {
   live?: boolean;
   className?: string;
   title?: string;
+  /** lights off: the dial goes dark and the lume glows */
+  night?: boolean;
+  /** groups the caller rotates to run the chronograph (centre hand, 30-minute counter) */
+  chronoHandRef?: RefObject<SVGGElement | null>;
+  chronoCounterRef?: RefObject<SVGGElement | null>;
+  /** makes the pushers pressable: top = start/stop, bottom = reset */
+  onPusher?: (which: 'start' | 'reset') => void;
 }
 
 const HOUR_MARKERS = [0, 1, 2, 4, 5, 7, 8, 10, 11]; // 3, 6 and 9 hold the counters and the date
 
-export function WatchFace({ dial: dialId, strap, size = '40', view = 'full', live = true, className, title }: Props) {
+export function WatchFace({ dial: dialId, strap, size = '40', view = 'full', live = true, className, title, night = false, chronoHandRef, chronoCounterRef, onPusher }: Props) {
   const id = useSvgId('w');
   const dial = dialById(dialId);
   const scale = sizeById(size).scale;
@@ -130,6 +138,14 @@ export function WatchFace({ dial: dialId, strap, size = '40', view = 'full', liv
         <filter id={`${id}-shadow`} x="-20%" y="-20%" width="140%" height="140%" colorInterpolationFilters="sRGB">
           <feDropShadow dx="1.4" dy="2.2" stdDeviation="1.3" floodColor="#000" floodOpacity="0.4" />
         </filter>
+        <filter id={`${id}-glow`} x="-100%" y="-100%" width="300%" height="300%" colorInterpolationFilters="sRGB">
+          <feGaussianBlur stdDeviation="2.2" result="b" />
+          <feMerge>
+            <feMergeNode in="b" />
+            <feMergeNode in="b" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
         <clipPath id={`${id}-dialclip`}>
           <circle cx={CX} cy={CY} r="111" />
         </clipPath>
@@ -152,13 +168,33 @@ export function WatchFace({ dial: dialId, strap, size = '40', view = 'full', liv
         ))}
 
         {/* pushers at 2 and 4 o'clock */}
-        {[-30, 30].map((a) => (
-          <g key={a} transform={`rotate(${a} ${CX} ${CY})`}>
-            <rect x="328" y="393" width="12" height="14" rx="2" fill="#9A9DA1" />
-            <rect x="338" y="387" width="15" height="26" rx="5" fill={`url(#${id}-lug)`} />
-            <rect x="349" y="389" width="2.5" height="22" rx="1.2" fill="#fff" opacity="0.6" />
-          </g>
-        ))}
+        {[-30, 30].map((a) => {
+          const which = a < 0 ? 'start' : 'reset';
+          const press = onPusher
+            ? {
+                role: 'button',
+                tabIndex: 0,
+                'aria-label': which === 'start' ? 'Start or stop the chronograph' : 'Reset the chronograph',
+                className: 'pusher',
+                onClick: () => onPusher(which),
+                onKeyDown: (e: KeyboardEvent) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onPusher(which);
+                  }
+                },
+              }
+            : {};
+          return (
+            <g key={a} transform={`rotate(${a} ${CX} ${CY})`}>
+              <g {...press}>
+                <rect x="328" y="393" width="12" height="14" rx="2" fill="#9A9DA1" />
+                <rect x="338" y="387" width="15" height="26" rx="5" fill={`url(#${id}-lug)`} />
+                <rect x="349" y="389" width="2.5" height="22" rx="1.2" fill="#fff" opacity="0.6" />
+              </g>
+            </g>
+          );
+        })}
 
         {/* crown */}
         <rect x="324" y="390" width="12" height="20" rx="2" fill="#9A9DA1" />
@@ -223,14 +259,14 @@ export function WatchFace({ dial: dialId, strap, size = '40', view = 'full', liv
                 {[-5.5, 5.5].map((dx) => (
                   <g key={dx}>
                     <rect x={CX + dx - 3.3} y={CY - 98} width="6.6" height="24" rx="1.4" fill={steel} />
-                    <rect x={CX + dx - 1.3} y={CY - 95} width="2.6" height="18" rx="0.8" fill={lume} />
+                    <rect className="lume" x={CX + dx - 1.3} y={CY - 95} width="2.6" height="18" rx="0.8" fill={lume} />
                   </g>
                 ))}
               </g>
             ) : (
               <g key={i} transform={`rotate(${i * 30} ${CX} ${CY})`}>
                 <rect x={CX - 3.3} y={CY - 98} width="6.6" height="21" rx="1.4" fill={steel} />
-                <rect x={CX - 1.3} y={CY - 95} width="2.6" height="15" rx="0.8" fill={lume} />
+                <rect className="lume" x={CX - 1.3} y={CY - 95} width="2.6" height="15" rx="0.8" fill={lume} />
               </g>
             ),
           )}
@@ -254,28 +290,47 @@ export function WatchFace({ dial: dialId, strap, size = '40', view = 'full', liv
           CHRONOGRAPH
         </text>
 
+        {night && (
+          <g>
+            <rect x="0" y="0" width="400" height="800" fill="var(--bg, #0b0c0e)" opacity="0.9" />
+            <g filter={`url(#${id}-glow)`} fill="#C9F7C6">
+              {HOUR_MARKERS.map((i) =>
+                i === 0 ? (
+                  [-5.5, 5.5].map((dx) => <rect key={dx} x={CX + dx - 1.3} y={CY - 95} width="2.6" height="18" rx="0.8" />)
+                ) : (
+                  <rect key={i} x={CX - 1.3} y={CY - 95} width="2.6" height="15" rx="0.8" transform={`rotate(${i * 30} ${CX} ${CY})`} />
+                ),
+              )}
+            </g>
+          </g>
+        )}
+
         {/* hands */}
-        <g filter={`url(#${id}-shadow)`}>
+        <g filter={`url(#${id}-shadow)`} className={night ? 'is-night' : undefined}>
           {/* running seconds in the sub-dial at 9 */}
           <g ref={second}>
             <rect x={SUB_L[0] - 0.6} y={SUB_L[1] - 23} width="1.2" height="28" rx="0.6" fill={dial.print} />
           </g>
           <circle cx={SUB_L[0]} cy={SUB_L[1]} r="2.2" fill={dial.print} />
           {/* 30-minute counter at rest */}
-          <rect x={SUB_R[0] - 0.6} y={SUB_R[1] - 23} width="1.2" height="28" rx="0.6" fill={dial.print} />
+          <g ref={chronoCounterRef}>
+            <rect x={SUB_R[0] - 0.6} y={SUB_R[1] - 23} width="1.2" height="28" rx="0.6" fill={dial.print} />
+          </g>
           <circle cx={SUB_R[0]} cy={SUB_R[1]} r="2.2" fill={dial.print} />
 
           <g ref={hour}>
-            <path d="M200,334 L205,342 L205,408 L195,408 L195,342 Z" fill={steel} />
-            <rect x="197.4" y="344" width="5.2" height="50" rx="1" fill={lume} />
+            <path className="hand-body" d="M200,334 L205,342 L205,408 L195,408 L195,342 Z" fill={steel} />
+            <rect className="lume" x="197.4" y="344" width="5.2" height="50" rx="1" fill={night ? '#C9F7C6' : lume} filter={night ? `url(#${id}-glow)` : undefined} />
           </g>
           <g ref={minute}>
-            <path d="M200,300 L204.2,308 L204.2,410 L195.8,410 L195.8,308 Z" fill={steel} />
-            <rect x="197.8" y="310" width="4.4" height="84" rx="1" fill={lume} />
+            <path className="hand-body" d="M200,300 L204.2,308 L204.2,410 L195.8,410 L195.8,308 Z" fill={steel} />
+            <rect className="lume" x="197.8" y="310" width="4.4" height="84" rx="1" fill={night ? '#C9F7C6' : lume} filter={night ? `url(#${id}-glow)` : undefined} />
           </g>
-          {/* chronograph seconds, resting at 12 */}
-          <rect x="199.35" y="292" width="1.3" height="134" rx="0.65" fill={ORANGE} />
-          <path d="M196.6,426 L203.4,426 L200,436 Z" fill={ORANGE} />
+          {/* chronograph seconds, resting at 12 unless the caller runs it */}
+          <g ref={chronoHandRef}>
+            <rect x="199.35" y="292" width="1.3" height="134" rx="0.65" fill={ORANGE} />
+            <path d="M196.6,426 L203.4,426 L200,436 Z" fill={ORANGE} />
+          </g>
           <circle cx={CX} cy={CY} r="5" fill={`url(#${id}-polish)`} />
           <circle cx={CX} cy={CY} r="2" fill={ORANGE} />
         </g>

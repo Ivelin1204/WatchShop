@@ -1112,27 +1112,151 @@ em {
   align-items: center;
 }
 
-.details__macro {
+.details__stage {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
   aspect-ratio: 1;
-  max-height: min(74svh, 640px);
+  max-height: min(76svh, 640px);
   width: 100%;
-  border-radius: var(--r);
-  overflow: hidden;
-  background: #1c2f26;
 }
 
-.details__macro svg {
+.details__stage::before {
+  content: '';
+  position: absolute;
+  inset: 4%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(var(--ink-rgb) / 0.1), transparent);
+  z-index: -1;
+  transition: opacity 0.6s var(--ease);
+}
+
+.details.is-night .details__stage::before {
+  opacity: 0.25;
+}
+
+.details__dial {
   width: 100%;
   height: 100%;
-  transition: transform 0.8s var(--ease);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
 }
 
-.details__macro:hover svg {
-  transform: scale(1.03);
+/* lights off */
+.details__dial .is-night .hand-body {
+  fill: #25272b;
+}
+
+.details__dial .is-night > rect,
+.details__dial .is-night > circle,
+.details__dial .is-night g:not(:has(.lume)) > * {
+  opacity: 0.4;
+}
+
+/* pressable pushers */
+.pusher {
+  cursor: pointer;
+  transition: transform 0.12s var(--ease);
+}
+
+.pusher:hover rect:nth-child(2) {
+  filter: brightness(1.15);
+}
+
+.pusher:focus-visible {
+  outline: none;
+}
+
+.pusher:focus-visible rect:nth-child(2) {
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+
+.press-start .pusher[aria-label^='Start'],
+.press-reset .pusher[aria-label^='Reset'] {
+  transform: translateX(-4px);
+}
+
+.chrono {
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.chrono__time {
+  font-size: clamp(40px, 4.4vw, 64px);
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.chrono__btns {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+}
+
+.chrono__btns .btn {
+  min-width: 128px;
+}
+
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 8px;
+  margin-left: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--muted);
+  transition: color 0.2s var(--ease);
+}
+
+.switch:hover,
+.switch.is-on {
+  color: var(--ink);
+}
+
+.switch__track {
+  position: relative;
+  width: 44px;
+  height: 26px;
+  border-radius: 999px;
+  background: rgb(var(--ink-rgb) / 0.16);
+  transition: background-color 0.25s var(--ease);
+}
+
+.switch__thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--ink);
+  transition: transform 0.3s var(--ease);
+}
+
+.switch.is-on .switch__track {
+  background: #3f8f5a;
+}
+
+.switch.is-on .switch__thumb {
+  transform: translateX(18px);
 }
 
 .details__copy .lead {
   margin-top: 22px;
+}
+
+.details .specs {
+  margin-top: 32px;
 }
 
 .specs {
@@ -2042,9 +2166,10 @@ em {
   .config__stage {
     height: 44svh;
   }
-  .details__macro {
+  .details__stage {
     max-height: none;
-    max-width: 560px;
+    max-width: 520px;
+    margin-inline: auto;
   }
   .specs {
     grid-template-columns: 1fr 1fr;

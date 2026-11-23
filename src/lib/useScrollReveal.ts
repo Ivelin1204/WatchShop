@@ -25,7 +25,7 @@ const TEXT = [
   '.footer__grid > div',
 ];
 
-const MEDIA = ['.config__stage', '.details__macro', '.profile__stage', '.movement__stage', '.close__side'];
+const MEDIA = ['.config__stage', '.details__stage', '.profile__stage', '.movement__stage', '.close__side'];
 
 const STAGGER_MS = 90;
 const MAX_STAGGER = 6;

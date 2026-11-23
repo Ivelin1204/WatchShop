@@ -7,19 +7,102 @@ import { WatchBack } from './watch/WatchBack';
 import { WatchFace } from './watch/WatchFace';
 import { WatchProfile } from './watch/WatchProfile';
 
+const pad = (n: number, w = 2) => String(Math.floor(n)).padStart(w, '0');
+const readout = (ms: number) => `${pad((ms / 60000) % 30)}:${pad((ms / 1000) % 60)}.${pad((ms % 1000) / 10)}`;
+
+/** A working chronograph: start, stop and reset it, and switch the lights off to see the lume. */
 export function Details() {
+  const hand = useRef<SVGGElement>(null);
+  const counter = useRef<SVGGElement>(null);
+  const timeRef = useRef<HTMLSpanElement>(null);
+  const reduced = usePrefersReducedMotion();
+  const [running, setRunning] = useState(false);
+  const [night, setNight] = useState(false);
+  const [pressed, setPressed] = useState<'start' | 'reset' | null>(null);
+  const state = useRef({ acc: 0, since: 0 });
+
+  const paint = (ms: number) => {
+    // 8 beats a second, like the movement
+    const s = reduced ? Math.floor(ms / 1000) : Math.floor(ms / 125) / 8;
+    hand.current?.setAttribute('transform', `rotate(${(s % 60) * 6} 200 400)`);
+    counter.current?.setAttribute('transform', `rotate(${((ms / 60000) % 30) * 12} 246 400)`);
+    if (timeRef.current) timeRef.current.textContent = readout(ms);
+  };
+
+  useEffect(() => {
+    if (!running) return;
+    let raf = 0;
+    const loop = () => {
+      paint(state.current.acc + performance.now() - state.current.since);
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [running]);
+
+  const press = (which: 'start' | 'reset') => {
+    setPressed(which);
+    window.setTimeout(() => setPressed(null), 160);
+    const st = state.current;
+    if (which === 'start') {
+      if (running) {
+        st.acc += performance.now() - st.since;
+        paint(st.acc);
+        setRunning(false);
+      } else {
+        st.since = performance.now();
+        setRunning(true);
+      }
+    } else if (!running) {
+      st.acc = 0;
+      paint(0);
+    }
+  };
+
   return (
-    <section className="section details" id="details">
+    <section className={`section details ${night ? 'is-night' : ''}`} id="details">
       <div className="wrap details__grid">
-        <div className="details__macro">
-          <WatchFace dial="midnight" strap="bracelet" view="macro" title="Close-up of the midnight dial: the 30-minute counter, applied markers and the pushers" />
+        <div className={`details__stage ${pressed ? `press-${pressed}` : ''}`}>
+          <WatchFace
+            dial="midnight"
+            strap="bracelet"
+            view="dial"
+            night={night}
+            chronoHandRef={hand}
+            chronoCounterRef={counter}
+            onPusher={press}
+            className="details__dial"
+            title="Meridian Chronograph dial. The top pusher starts and stops the timer, the lower one resets it."
+          />
         </div>
         <div className="details__copy">
           <h2 className="h2">A timer you can read at a glance, even in the dark.</h2>
           <p className="lead">
-            The sub-dials sit a shade darker than the dial, cut with fine circular grooves. The orange hand is the
-            timer: it rests at 12 until you press start, so it never hides the time.
+            Try it. The top pusher starts and stops the orange hand, the lower one sends it back to zero. Then switch
+            the lights off.
           </p>
+
+          <div className="chrono">
+            <span className="chrono__time" ref={timeRef} aria-live="off">
+              00:00.00
+            </span>
+            <div className="chrono__btns">
+              <button className={`btn ${running ? 'btn--ghost' : 'btn--solid'}`} onClick={() => press('start')}>
+                {running ? 'Stop timer' : 'Start timer'}
+              </button>
+              <button className="btn btn--ghost" onClick={() => press('reset')} disabled={running}>
+                Reset
+              </button>
+              <button className={`switch ${night ? 'is-on' : ''}`} role="switch" aria-checked={night} onClick={() => setNight((n) => !n)}>
+                <span className="switch__track" aria-hidden="true">
+                  <span className="switch__thumb" />
+                </span>
+                Lights off
+              </button>
+            </div>
+          </div>
+
           <dl className="specs">
             {SPECS.map((s) => (
               <div key={s.label} className="specs__row">
