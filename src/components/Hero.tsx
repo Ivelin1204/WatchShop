@@ -117,7 +117,7 @@ function SecondsRing() {
   );
 }
 
-/** The 3D model, spinning in on load and turning gently towards the pointer. */
+/** The 3D model, spinning in on load and then resting in its pose. */
 function HeroWatch() {
   const canvas = useRef<HTMLCanvasElement>(null);
   const reduced = usePrefersReducedMotion();
@@ -129,7 +129,6 @@ function HeroWatch() {
     let disposed = false;
     let io: IntersectionObserver | null = null;
     let ro: ResizeObserver | null = null;
-    let onMove: ((e: PointerEvent) => void) | null = null;
 
     (async () => {
       try {
@@ -144,15 +143,6 @@ function HeroWatch() {
         scene.setTurn(POSE.turn);
         setReady(true);
 
-        if (!reduced && window.matchMedia('(pointer: fine)').matches) {
-          onMove = (e) => {
-            const x = e.clientX / window.innerWidth - 0.5;
-            const y = e.clientY / window.innerHeight - 0.5;
-            scene?.setTurn(POSE.turn + x * 0.5);
-            scene?.setTilt(POSE.tilt + y * 0.22);
-          };
-          window.addEventListener('pointermove', onMove, { passive: true });
-        }
         io = new IntersectionObserver(([e]) => scene?.setActive(e.isIntersecting));
         io.observe(canvas.current);
         ro = new ResizeObserver(() => scene?.resize());
@@ -164,7 +154,6 @@ function HeroWatch() {
 
     return () => {
       disposed = true;
-      if (onMove) window.removeEventListener('pointermove', onMove);
       io?.disconnect();
       ro?.disconnect();
       scene?.dispose();
