@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useCart } from '../cart/CartContext';
 import { BRAND } from '../data/product';
+import { LogoMark } from './Logo';
 
 const LINKS = [
   { href: '#buy', label: 'The watch' },
@@ -44,11 +45,7 @@ export function Nav() {
     <header className={`nav ${scrolled ? 'is-scrolled' : ''} ${dark && !menu ? 'is-dark' : ''} ${menu ? 'is-menu' : ''}`}>
       <div className="wrap nav__row">
         <a className="nav__logo" href="#top" aria-label={`${BRAND.name}, back to top`} onClick={() => setMenu(false)}>
-          <svg viewBox="0 0 24 24" aria-hidden="true" className="nav__mark">
-            <circle cx="12" cy="12" r="10.5" fill="none" stroke="currentColor" strokeWidth="1.6" />
-            <path d="M12 12V5.5M12 12l4.2 2.6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-            <circle cx="12" cy="12" r="1.4" fill="var(--accent)" />
-          </svg>
+          <LogoMark className="nav__mark" />
           <span>{BRAND.name}</span>
         </a>
 

@@ -306,13 +306,18 @@ em {
 }
 
 .nav__mark {
-  width: 26px;
-  height: 26px;
-  transition: transform 0.6s var(--ease);
+  width: 30px;
+  height: 30px;
 }
 
-.nav__logo:hover .nav__mark {
-  transform: rotate(-30deg);
+.logo-pin {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.35s var(--ease);
+}
+
+.nav__logo:hover .logo-pin {
+  transform: scale(1.45);
 }
 
 .nav__links {
@@ -1480,7 +1485,15 @@ em {
   align-items: center;
 }
 
+.footer__mark {
+  width: 34px;
+  height: 34px;
+}
+
 .footer__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   color: var(--dark-ink);
   font-weight: 700;
   font-size: 22px;

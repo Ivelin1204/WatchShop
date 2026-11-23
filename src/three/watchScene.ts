@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import type { Dial } from '../data/product';
+import { LOGO_PATHS } from '../components/Logo';
 
 /**
  * A procedural 3D model of the Meridian Chronograph, built from primitives so
@@ -271,7 +272,36 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
     ridges.setMatrixAt(i, tmp.matrix);
   }
   crown.add(ridges);
-  const crownEnd = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 3.1, 0.4, 48), polished);
+  // the crown's end carries the Merid mark, engraved
+  const markCanvas = document.createElement('canvas');
+  markCanvas.width = markCanvas.height = 256;
+  {
+    const c = markCanvas.getContext('2d')!;
+    c.fillStyle = '#d4d6d9';
+    c.fillRect(0, 0, 256, 256);
+    c.save();
+    c.translate(128, 128);
+    c.rotate(Math.PI); // the cylinder cap maps the texture upside down
+    c.scale(4.2, 4.2);
+    c.translate(-24, -24);
+    c.strokeStyle = '#3a3d42';
+    c.lineWidth = 2.6;
+    c.lineJoin = 'round';
+    c.lineCap = 'round';
+    c.beginPath();
+    c.arc(LOGO_PATHS.ring.cx, LOGO_PATHS.ring.cy, LOGO_PATHS.ring.r, 0, Math.PI * 2);
+    c.stroke();
+    c.stroke(new Path2D(LOGO_PATHS.m));
+    c.fillStyle = ORANGE;
+    c.beginPath();
+    c.arc(LOGO_PATHS.pin.cx, LOGO_PATHS.pin.cy, LOGO_PATHS.pin.r, 0, Math.PI * 2);
+    c.fill();
+    c.restore();
+  }
+  const markTex = new THREE.CanvasTexture(markCanvas);
+  markTex.colorSpace = THREE.SRGBColorSpace;
+  const markMat = new THREE.MeshStandardMaterial({ map: markTex, metalness: 0.8, roughness: 0.3 });
+  const crownEnd = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 3.1, 0.4, 48), [polished, markMat, polished]);
   crownEnd.position.y = 5.1;
   crown.add(crownEnd);
   crown.rotation.z = -Math.PI / 2; // point along +X
@@ -629,7 +659,8 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
       scene.traverse((o) => {
         if (o instanceof THREE.Mesh) o.geometry.dispose();
       });
-      [brushed, polished, darkMetal, lume, orange, blackHand, sapphire, dialMat, moveMat, subPrint].forEach((m) => m.dispose());
+      [brushed, polished, darkMetal, lume, orange, blackHand, sapphire, dialMat, moveMat, subPrint, markMat].forEach((m) => m.dispose());
+      markTex.dispose();
       dialTex.dispose();
       moveTex.dispose();
       env.dispose();

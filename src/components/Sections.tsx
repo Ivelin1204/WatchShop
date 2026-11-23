@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { BRAND, FAQ, MODEL, SPECS } from '../data/product';
 import { money } from '../lib/format';
 import { usePrefersReducedMotion } from './watch/useClock';
+import { LogoMark } from './Logo';
 import { WatchBack } from './watch/WatchBack';
 import { WatchFace } from './watch/WatchFace';
 import { WatchSide } from './watch/WatchSide';
@@ -247,7 +248,10 @@ export function Footer() {
     <footer className="footer">
       <div className="wrap footer__grid">
         <div>
-          <p className="footer__brand">{BRAND.name}</p>
+          <p className="footer__brand">
+            <LogoMark className="footer__mark" />
+            {BRAND.name}
+          </p>
           <p>Automatic watches, made in small batches.</p>
         </div>
         <div>
