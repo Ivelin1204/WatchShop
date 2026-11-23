@@ -1078,8 +1078,23 @@ em {
   filter: drop-shadow(0 30px 40px rgba(0, 0, 0, 0.5));
 }
 
-.movement.is-running .balance {
+.movement.is-started .rotor {
+  animation: spin 3.2s cubic-bezier(0.45, 0, 0.3, 1) infinite;
+}
+
+.movement.is-started .balance {
   animation: osc 0.125s ease-in-out infinite alternate;
+}
+
+.movement.is-paused .rotor,
+.movement.is-paused .balance {
+  animation-play-state: paused;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes osc {
@@ -1823,7 +1838,8 @@ em {
     opacity: 1;
     transform: none;
   }
-  .movement.is-running .balance {
+  .movement.is-started .rotor,
+  .movement.is-started .balance {
     animation: none;
   }
 }

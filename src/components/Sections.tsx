@@ -63,46 +63,26 @@ export function Profile() {
 export function Movement() {
   const section = useRef<HTMLElement>(null);
   const reduced = usePrefersReducedMotion();
-  const [running, setRunning] = useState(false);
+  const [started, setStarted] = useState(false);
+  const [visible, setVisible] = useState(false);
 
-  // the balance wheel ticks while the section is on screen
+  // starts once, the first time the section scrolls into view, then keeps
+  // running on its own; it only pauses while off screen to save battery
   useEffect(() => {
     if (reduced || !section.current) return;
-    const io = new IntersectionObserver(([e]) => setRunning(e.isIntersecting), { threshold: 0.15 });
+    const io = new IntersectionObserver(
+      ([e]) => {
+        setVisible(e.isIntersecting);
+        if (e.isIntersecting) setStarted(true);
+      },
+      { threshold: 0.35 },
+    );
     io.observe(section.current);
     return () => io.disconnect();
   }, [reduced]);
 
-  // the rotor swings with the scroll: each scroll adds spin, friction slows it down
-  useEffect(() => {
-    if (reduced || !running) return;
-    const rotor = section.current?.querySelector<SVGGElement>('.rotor');
-    if (!rotor) return;
-    let angle = 0;
-    let speed = 0;
-    let lastY = window.scrollY;
-    let raf = 0;
-    const tick = () => {
-      angle += speed;
-      speed *= 0.95;
-      rotor.style.transform = `rotate(${angle}deg)`;
-      raf = Math.abs(speed) > 0.02 ? requestAnimationFrame(tick) : 0;
-    };
-    const onScroll = () => {
-      const y = window.scrollY;
-      speed = Math.max(-28, Math.min(28, speed + (y - lastY) * 0.08));
-      lastY = y;
-      if (!raf) raf = requestAnimationFrame(tick);
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      cancelAnimationFrame(raf);
-    };
-  }, [running, reduced]);
-
   return (
-    <section className={`section movement ${running ? 'is-running' : ''}`} id="movement" ref={section}>
+    <section className={`section movement ${started ? 'is-started' : ''} ${started && !visible ? 'is-paused' : ''}`} id="movement" ref={section}>
       <div className="wrap movement__grid">
         <div className="movement__stage">
           <WatchBack className="movement__back" />
@@ -111,7 +91,7 @@ export function Movement() {
           <h2 className="h2">A Swiss chronograph calibre you can watch through the back.</h2>
           <p className="lead">
             Turn the watch over and the movement is behind sapphire. The rotor swings as your wrist moves and
-            winds the spring, so it never needs a battery. Scroll and watch it turn.
+            winds the spring, so it never needs a battery.
           </p>
           <ul className="figures figures--dark">
             <li>
