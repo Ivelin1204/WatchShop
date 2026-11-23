@@ -1078,18 +1078,8 @@ em {
   filter: drop-shadow(0 30px 40px rgba(0, 0, 0, 0.5));
 }
 
-.movement__stage:hover .rotor {
-  animation: spin 3.2s cubic-bezier(0.45, 0, 0.3, 1) infinite;
-}
-
-.movement__stage:hover .balance {
+.movement.is-running .balance {
   animation: osc 0.125s ease-in-out infinite alternate;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 @keyframes osc {
@@ -1833,8 +1823,7 @@ em {
     opacity: 1;
     transform: none;
   }
-  .movement__stage:hover .rotor,
-  .movement__stage:hover .balance {
+  .movement.is-running .balance {
     animation: none;
   }
 }
