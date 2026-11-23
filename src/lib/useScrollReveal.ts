@@ -18,6 +18,7 @@ const TEXT = [
   '.config__note',
   '.specs__row',
   '.figures li',
+  '.parts li',
   '.promises li',
   '.faq__item',
   '.close__title',

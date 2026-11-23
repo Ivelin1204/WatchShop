@@ -5,7 +5,7 @@ import { usePrefersReducedMotion } from './watch/useClock';
 import { LogoMark } from './Logo';
 import { WatchBack } from './watch/WatchBack';
 import { WatchFace } from './watch/WatchFace';
-import { WatchSide } from './watch/WatchSide';
+import { WatchProfile } from './watch/WatchProfile';
 
 export function Details() {
   return (
@@ -34,28 +34,76 @@ export function Details() {
   );
 }
 
+const PARTS = [
+  { n: 1, title: 'Domed sapphire', body: 'Curved crystal, anti-reflective inside, 2.9 mm of the height.' },
+  { n: 2, title: 'Two pushers', body: 'Start and stop at 2 o’clock, reset at 4.' },
+  { n: 3, title: 'Screw-down crown', body: 'Engraved with the Merid mark, sealed to 100 m.' },
+  { n: 4, title: 'Display caseback', body: 'Sapphire window onto the movement, flush with the wrist.' },
+];
+
 export function Profile() {
+  const ref = useRef<HTMLElement>(null);
+  const reduced = usePrefersReducedMotion();
+  const [drawn, setDrawn] = useState(false);
+
+  // the dimension lines draw in once, the first time the section comes into view
+  useEffect(() => {
+    if (reduced) {
+      setDrawn(true);
+      return;
+    }
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          setDrawn(true);
+          io.disconnect();
+        }
+      },
+      { threshold: 0.3 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [reduced]);
+
   return (
-    <section className="section profile" id="case">
+    <section className={`section profile ${drawn ? 'is-drawn' : ''}`} id="case" ref={ref}>
       <div className="wrap">
-        <h2 className="h2 profile__title">12.9&nbsp;mm thin, a slim case for a chronograph.</h2>
-        <div className="profile__stage">
-          <WatchSide className="profile__side" />
+        <div className="profile__head">
+          <h2 className="h2 profile__title">12.9&nbsp;mm from crystal to caseback.</h2>
+          <p className="lead">
+            Slim for a chronograph, so it slides under a shirt cuff. It weighs 138&nbsp;g on the bracelet, which tapers
+            from 20 to 16&nbsp;mm at the clasp.
+          </p>
         </div>
-        <ul className="figures">
-          <li>
-            <strong>47 mm</strong>
-            <span>lug to lug, curved to sit flat</span>
-          </li>
-          <li>
-            <strong>138 g</strong>
-            <span>on the steel bracelet</span>
-          </li>
-          <li>
-            <strong>20 mm</strong>
-            <span>bracelet, tapering to 16 mm</span>
-          </li>
-        </ul>
+        <div className="profile__stage">
+          <WatchProfile className="profile__drawing" />
+        </div>
+        <p className="profile__dims-m">
+          <span>
+            <strong>12.9 mm</strong> thick
+          </span>
+          <span>
+            <strong>40 mm</strong> case
+          </span>
+          <span>
+            <strong>47 mm</strong> lug to lug
+          </span>
+        </p>
+        <ol className="parts">
+          {PARTS.map((p) => (
+            <li key={p.n}>
+              <span className="parts__n" aria-hidden="true">
+                {p.n}
+              </span>
+              <div>
+                <strong>{p.title}</strong>
+                <span>{p.body}</span>
+              </div>
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   );
