@@ -1,16 +1,21 @@
 /* ───────────────────────── tokens ───────────────────────── */
 :root {
-  --bg: #f3efe7;
-  --surface: #e9e3d8;
-  --ink: #15171a;
-  --muted: #5d5950;
-  --line: rgba(21, 23, 26, 0.12);
-  --accent: #c8501e;
-  --accent-ink: #a3401a;
-  --dark: #121417;
+  color-scheme: dark;
+  /* black theme: every colour on the page comes from these tokens */
+  --bg: #0b0c0e;
+  --surface: #131417;
+  --ink: #ece7dd;
+  --ink-rgb: 236 231 221;
+  --muted: #9a958b;
+  --line: rgb(var(--ink-rgb) / 0.12);
+  --accent: #d2591f;
+  --accent-ink: #ec7b43;
+  --dark: #050506;
   --dark-ink: #ece7dd;
-  --dark-muted: #a7a196;
-  --dark-line: rgba(236, 231, 221, 0.14);
+  --dark-muted: #9a958b;
+  --dark-line: rgb(var(--ink-rgb) / 0.12);
+  --field: #17181b;
+  --error: #ff7a6b;
 
   --sans: 'Manrope Variable', 'Manrope', system-ui, sans-serif;
   --serif: 'Instrument Serif', Georgia, serif;
@@ -187,17 +192,17 @@ em {
 }
 
 .btn--solid:hover {
-  background: #000;
-  box-shadow: 0 10px 24px -10px rgba(21, 23, 26, 0.55);
+  background: #fff;
+  box-shadow: 0 12px 30px -12px rgb(var(--ink-rgb) / 0.45);
 }
 
 .btn--ghost {
-  border: 1px solid rgba(21, 23, 26, 0.28);
+  border: 1px solid rgb(var(--ink-rgb) / 0.28);
 }
 
 .btn--ghost:hover {
   border-color: var(--ink);
-  background: rgba(21, 23, 26, 0.04);
+  background: rgb(var(--ink-rgb) / 0.04);
 }
 
 .btn--wide {
@@ -211,6 +216,7 @@ em {
 
 .btn.is-done {
   background: var(--accent);
+  color: #fff;
 }
 
 .btn__label {
@@ -260,14 +266,14 @@ em {
 }
 
 .nav.is-scrolled {
-  background: rgba(243, 239, 231, 0.86);
+  background: rgba(11, 12, 14, 0.78);
   backdrop-filter: saturate(1.4) blur(14px);
   -webkit-backdrop-filter: saturate(1.4) blur(14px);
   border-color: var(--line);
 }
 
 .nav.is-dark {
-  background: rgba(18, 20, 23, 0.82);
+  background: rgba(5, 5, 6, 0.82);
   color: var(--dark-ink);
   border-color: var(--dark-line);
 }
@@ -341,7 +347,7 @@ em {
 }
 
 .nav__bag:hover {
-  background: rgba(21, 23, 26, 0.06);
+  background: rgb(var(--ink-rgb) / 0.06);
 }
 
 .nav__bag:active {
@@ -361,7 +367,7 @@ em {
   display: grid;
   place-items: center;
   font-size: 12px;
-  background: rgba(21, 23, 26, 0.08);
+  background: rgb(var(--ink-rgb) / 0.08);
 }
 
 .nav__count.is-on {
@@ -512,6 +518,24 @@ em {
   position: relative;
   height: 100svh;
   align-self: stretch;
+}
+
+.hero__stage::before,
+.config__stage::before,
+.close__side::before {
+  content: '';
+  position: absolute;
+  inset: 8% 0;
+  background: radial-gradient(closest-side, rgb(var(--ink-rgb) / 0.09), transparent);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.hero__stage,
+.config__stage,
+.close__side {
+  position: relative;
+  isolation: isolate;
 }
 
 .hero__watch {
@@ -670,8 +694,8 @@ em {
   inset: 5px;
   border-radius: 50%;
   box-shadow:
-    inset 0 0 0 1px rgba(0, 0, 0, 0.18),
-    0 2px 6px -2px rgba(0, 0, 0, 0.3);
+    inset 0 0 0 1px rgb(var(--ink-rgb) / 0.22),
+    0 2px 8px -2px rgba(0, 0, 0, 0.8);
   transition: transform 0.25s var(--ease);
 }
 
@@ -717,7 +741,7 @@ em {
   justify-content: center;
   min-height: 56px;
   padding: 8px 14px;
-  border: 1px solid rgba(21, 23, 26, 0.2);
+  border: 1px solid rgb(var(--ink-rgb) / 0.2);
   border-radius: var(--r);
   font-size: 15px;
   font-weight: 600;
@@ -953,7 +977,7 @@ em {
 }
 
 .workshop__text span {
-  color: #c9c1b2;
+  color: #34322e;
   transition: color 0.35s var(--ease);
 }
 
@@ -1021,7 +1045,7 @@ em {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  border: 1px solid rgba(21, 23, 26, 0.2);
+  border: 1px solid rgb(var(--ink-rgb) / 0.2);
   transition: transform 0.35s var(--ease), background-color 0.25s var(--ease);
 }
 
@@ -1043,7 +1067,7 @@ em {
 }
 
 .faq__q:hover .faq__icon {
-  background: rgba(21, 23, 26, 0.06);
+  background: rgb(var(--ink-rgb) / 0.06);
 }
 
 .is-open .faq__icon::after {
@@ -1181,7 +1205,7 @@ em {
 .drawer__scrim {
   position: absolute;
   inset: 0;
-  background: rgba(18, 20, 23, 0.42);
+  background: rgba(0, 0, 0, 0.62);
   opacity: 0;
   transition: opacity 0.4s var(--ease);
 }
@@ -1201,7 +1225,8 @@ em {
   flex-direction: column;
   transform: translateX(100%);
   transition: transform 0.5s var(--ease);
-  box-shadow: -30px 0 60px -30px rgba(0, 0, 0, 0.35);
+  box-shadow: -30px 0 60px -30px rgba(0, 0, 0, 0.8);
+  border-left: 1px solid var(--line);
   outline: none;
 }
 
@@ -1233,7 +1258,7 @@ em {
 }
 
 .icon-btn:hover {
-  background: rgba(21, 23, 26, 0.06);
+  background: rgb(var(--ink-rgb) / 0.06);
 }
 
 .icon-btn:active {
@@ -1315,7 +1340,7 @@ em {
 }
 
 .qty button:hover {
-  background: rgba(21, 23, 26, 0.06);
+  background: rgb(var(--ink-rgb) / 0.06);
 }
 
 .qty button:disabled {
@@ -1388,9 +1413,9 @@ em {
   width: 100%;
   min-height: 52px;
   padding: 0 16px;
-  border: 1px solid rgba(21, 23, 26, 0.22);
+  border: 1px solid rgb(var(--ink-rgb) / 0.22);
   border-radius: var(--r);
-  background: #fbf9f5;
+  background: var(--field);
   font: inherit;
   font-size: 16px;
   color: var(--ink);
@@ -1399,24 +1424,24 @@ em {
 
 .field input:hover,
 .select__btn:hover {
-  border-color: rgba(21, 23, 26, 0.45);
+  border-color: rgb(var(--ink-rgb) / 0.45);
 }
 
 .field input:focus,
 .select__btn:focus-visible {
   outline: none;
   border-color: var(--ink);
-  box-shadow: 0 0 0 3px rgba(200, 80, 30, 0.25);
+  box-shadow: 0 0 0 3px rgba(210, 89, 31, 0.35);
 }
 
 .has-error input,
 .has-error .select__btn {
-  border-color: #b3261e;
+  border-color: var(--error);
 }
 
 .field__error {
   font-size: 13px;
-  color: #b3261e;
+  color: var(--error);
 }
 
 .select__btn {
@@ -1444,10 +1469,10 @@ em {
   max-height: 260px;
   overflow-y: auto;
   padding: 6px;
-  background: #fbf9f5;
+  background: var(--field);
   border: 1px solid var(--line);
   border-radius: var(--r);
-  box-shadow: 0 20px 40px -16px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 40px -16px rgba(0, 0, 0, 0.8);
   z-index: 5;
   outline: none;
   animation: listIn 0.2s var(--ease);
@@ -1468,7 +1493,7 @@ em {
 }
 
 .select__list li.is-active {
-  background: rgba(21, 23, 26, 0.07);
+  background: rgb(var(--ink-rgb) / 0.07);
 }
 
 .select__list li[aria-selected='true'] {
@@ -1478,7 +1503,7 @@ em {
 .checkout__notice {
   padding: 14px 16px;
   border-radius: var(--r);
-  background: rgba(200, 80, 30, 0.1);
+  background: rgba(210, 89, 31, 0.16);
   font-size: 14px;
 }
 
