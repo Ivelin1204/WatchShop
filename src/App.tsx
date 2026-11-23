@@ -4,7 +4,8 @@ import { Configurator } from './components/Configurator';
 import { Hero } from './components/Hero';
 import { Showcase3D } from './components/Showcase3D';
 import { Nav } from './components/Nav';
-import { Close, Delivery, Details, Footer, Movement, Profile, Workshop } from './components/Sections';
+import { Close, Delivery, Details, Footer, Movement, Profile } from './components/Sections';
+import { Workshop } from './components/Workshop';
 import { useScrollReveal } from './lib/useScrollReveal';
 
 export default function App() {

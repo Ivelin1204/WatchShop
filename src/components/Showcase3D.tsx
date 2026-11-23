@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { DIALS, dialById, type DialId } from '../data/product';
+import { movementImage } from '../three/movementImage';
 import type { WatchScene } from '../three/watchScene';
 import { WatchBack } from './watch/WatchBack';
 import { WatchFace } from './watch/WatchFace';
@@ -83,19 +84,9 @@ export function Showcase3D() {
         sceneRef.current = s;
         setReady(true);
 
-        // movement texture: draw the 2D caseback artwork, cropped to the window
+        // movement texture: the 2D caseback artwork, cropped to the window
         const svg = backSvg.current?.querySelector('svg');
-        if (svg) {
-          const clone = svg.cloneNode(true) as SVGSVGElement;
-          clone.setAttribute('viewBox', '76 76 248 248');
-          clone.setAttribute('width', '768');
-          clone.setAttribute('height', '768');
-          clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-          clone.querySelectorAll('.rotor, .balance').forEach((n) => (n as SVGElement).removeAttribute('style'));
-          const img = new Image();
-          img.onload = () => !disposed && s.setMovementTexture(img);
-          img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(new XMLSerializer().serializeToString(clone))}`;
-        }
+        if (svg) movementImage(svg).then((img) => !disposed && s.setMovementTexture(img), () => {});
 
         io = new IntersectionObserver(([e]) => s.setActive(e.isIntersecting), { rootMargin: '100px' });
         if (section.current) io.observe(section.current);

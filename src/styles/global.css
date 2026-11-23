@@ -1511,19 +1511,44 @@ em {
   color: var(--dark-muted);
 }
 
-/* workshop: the statement fills in, then five days of timing light up */
-.workshop .wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
+/* workshop: pinned; the statement fills in, then the watch is timed in five positions */
+.workshop {
+  position: relative;
+  height: 340svh;
+}
+
+.workshop.is-still {
+  height: auto;
+}
+
+.workshop__pin {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+}
+
+.workshop.is-still .workshop__pin {
+  position: relative;
+  height: auto;
+  padding-block: calc(var(--nav-h) + 32px) 64px;
+}
+
+.workshop__grid {
+  height: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(32px, 5vw, 80px);
+  align-items: center;
+  padding-top: var(--nav-h);
 }
 
 .workshop__text {
-  font-size: clamp(28px, 3.6vw, 54px);
-  line-height: 1.12;
+  margin-top: 18px;
+  font-size: clamp(24px, 2.4vw, 36px);
+  line-height: 1.16;
   font-weight: 500;
-  letter-spacing: -0.035em;
-  max-width: 23em;
+  letter-spacing: -0.03em;
 }
 
 .workshop__text span {
@@ -1535,113 +1560,215 @@ em {
   color: var(--ink);
 }
 
-.timing {
-  position: relative;
-  margin-top: clamp(12px, 3vh, 36px);
-}
-
-.timing__track {
-  position: absolute;
-  left: 10%;
-  right: 10%;
-  top: 7px;
-  height: 2px;
-  background: var(--line);
-}
-
-.timing__track span {
-  display: block;
-  height: 100%;
-  background: var(--accent);
-  transform-origin: left;
-  transition: transform 0.25s linear;
-}
-
-.timing__days {
-  position: relative;
-  margin: 0;
+.steps {
+  margin: 28px 0 0;
   padding: 0;
   list-style: none;
+}
+
+.steps li {
+  position: relative;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-}
-
-.timing__days li {
-  display: flex;
-  flex-direction: column;
+  grid-template-columns: 26px 64px 1fr;
   align-items: center;
-  gap: 8px;
-  text-align: center;
-  color: #4a4842;
-  transition: color 0.5s var(--ease);
+  gap: 12px;
+  padding: 12px 0 14px;
+  border-top: 1px solid var(--line);
+  color: #55524b;
+  transition: color 0.4s var(--ease);
 }
 
-.timing__dot {
-  width: 16px;
-  height: 16px;
+.steps__mark {
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  background: var(--bg);
-  border: 2px solid rgb(var(--ink-rgb) / 0.2);
+  border: 1.5px solid rgb(var(--ink-rgb) / 0.2);
+  display: grid;
+  place-items: center;
+  color: transparent;
   transition:
-    background-color 0.4s var(--ease),
-    border-color 0.4s var(--ease),
-    transform 0.5s cubic-bezier(0.3, 1.6, 0.5, 1);
+    background-color 0.35s var(--ease),
+    border-color 0.35s var(--ease),
+    color 0.35s var(--ease);
 }
 
-.timing__days .pose {
-  width: clamp(56px, 6vw, 84px);
-  height: auto;
-  margin-top: 14px;
-  transition: transform 0.7s var(--ease);
+.steps__mark svg {
+  width: 12px;
+  height: 12px;
 }
 
-.timing__day {
-  margin-top: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
+.steps__day {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
-.timing__pose {
+.steps__name {
   font-size: 17px;
   font-weight: 500;
 }
 
-.timing__days li.is-on {
+.steps__bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  overflow: hidden;
+}
+
+.steps__bar span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transform-origin: left;
+  transform: scaleX(0);
+}
+
+.steps li.is-now {
   color: var(--ink);
 }
 
-.timing__days li.is-on .timing__dot {
-  background: var(--accent);
+.steps li.is-now .steps__mark {
   border-color: var(--accent);
-  transform: scale(1.15);
+  box-shadow: 0 0 0 4px rgba(210, 89, 31, 0.18);
 }
 
-.timing__days li.is-on .pose {
-  transform: translateY(-4px);
-}
-
-.timing__days li.is-on .timing__day {
+.steps li.is-now .steps__day {
   color: var(--accent-ink);
 }
 
-.timing__result {
-  margin-top: 32px;
-  text-align: center;
-  font-size: 17px;
+.steps li.is-done {
+  color: rgb(var(--ink-rgb) / 0.75);
+}
+
+.steps li.is-done .steps__mark {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.steps li.is-done .steps__bar span {
+  background: rgb(var(--ink-rgb) / 0.12);
+}
+
+.workshop__result {
+  margin-top: 22px;
+  font-size: 16px;
   color: var(--muted);
-  opacity: 0.35;
+  opacity: 0.4;
   transition: opacity 0.6s var(--ease);
 }
 
-.timing__result strong {
+.workshop__result strong {
   color: var(--ink);
   font-weight: 600;
 }
 
-.timing__result.is-on {
+.workshop__result.is-on {
   opacity: 1;
+}
+
+/* the test bench */
+.bench {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background:
+    radial-gradient(60% 55% at 50% 38%, rgb(var(--ink-rgb) / 0.09), transparent 70%),
+    linear-gradient(180deg, #15161a, #0d0e10);
+  overflow: hidden;
+}
+
+.bench__stage {
+  position: relative;
+  height: min(54svh, 520px);
+}
+
+.bench__canvas,
+.bench__fallback {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.bench__canvas {
+  opacity: 0;
+  transition: opacity 1s var(--ease);
+}
+
+.bench__canvas.is-ready {
+  opacity: 1;
+}
+
+.bench__tag {
+  position: absolute;
+  left: 20px;
+  top: 18px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 10px;
+  align-items: center;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.bench__note {
+  grid-column: 2;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.bench__led {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgb(var(--ink-rgb) / 0.25);
+}
+
+.bench__led.is-on {
+  background: #4cc46f;
+  box-shadow: 0 0 10px #4cc46f;
+  animation: led 1s steps(2, jump-none) infinite;
+}
+
+@keyframes led {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.trace {
+  position: relative;
+  border-top: 1px solid var(--line);
+  background: #08090a;
+  color: var(--ink);
+}
+
+.trace__label {
+  position: absolute;
+  left: 20px;
+  top: 8px;
+  padding: 2px 8px 2px 0;
+  background: #08090a;
+  z-index: 1;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.trace__canvas {
+  display: block;
+  width: 100%;
+  height: 110px;
+  color: var(--ink);
 }
 
 /* delivery */
@@ -2319,6 +2446,15 @@ em {
     width: min(150%, 70svh);
   }
 
+  .workshop__grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    align-content: center;
+    gap: 16px;
+  }
+  .workshop .bench {
+    order: -1;
+  }
   .profile__head {
     grid-template-columns: 1fr;
     gap: 12px;
@@ -2385,31 +2521,42 @@ em {
   .parts li {
     padding: 14px 0;
   }
-  .timing__track {
+  .workshop__text {
+    font-size: 19px;
+    margin-top: 10px;
+  }
+  .steps {
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+  }
+  .steps li {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+    gap: 4px;
+    padding: 8px 0 10px;
+  }
+  .steps__name {
+    font-size: 12px;
+    line-height: 1.2;
+  }
+  .steps__day {
+    font-size: 10px;
+  }
+  .workshop__result {
+    margin-top: 10px;
+    font-size: 13px;
+  }
+  .bench__stage {
+    height: 30svh;
+  }
+  .bench__note {
     display: none;
   }
-  .timing__days {
-    grid-template-columns: 1fr;
-    gap: 0;
-  }
-  .timing__days li {
-    flex-direction: row;
-    text-align: left;
-    gap: 14px;
-    padding: 10px 0;
-    border-top: 1px solid var(--line);
-  }
-  .timing__days .pose {
-    width: 44px;
-    margin: 0;
-  }
-  .timing__day {
-    margin: 0;
-    min-width: 4.5em;
-  }
-  .timing__result {
-    text-align: left;
-    margin-top: 16px;
+  .trace__canvas {
+    height: 70px;
   }
 }
 

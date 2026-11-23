@@ -35,6 +35,8 @@ export interface WatchScene {
   setTurn: (radians: number) => void;
   /** target tilt around the horizontal axis, in radians */
   setTilt: (radians: number) => void;
+  /** target roll around the axis through the dial, in radians */
+  setRoll: (radians: number) => void;
   setDial: (dial: Dial) => void;
   setMovementTexture: (img: CanvasImageSource) => void;
   setActive: (active: boolean) => void;
@@ -574,6 +576,8 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
   let tiltTarget = opts.tilt ?? 0.1;
   let turn = reduced ? 0 : (opts.initial?.turn ?? 0);
   let tilt = reduced ? tiltTarget : (opts.initial?.tilt ?? tiltTarget);
+  let rollTarget = 0;
+  let roll = 0;
   let active = true;
   let raf = 0;
   const floating = !!opts.float && !reduced;
@@ -595,11 +599,13 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
     const k = reduced ? 1 : 0.07;
     turn += (turnTarget - turn) * k;
     tilt += (tiltTarget - tilt) * k;
-    watch.rotation.set(tilt, turn, 0);
+    roll += (rollTarget - roll) * k;
+    watch.rotation.set(tilt, turn, roll);
     if (floating) watch.position.y = Math.sin((performance.now() - t0) / 1400) * 0.9;
     setHands();
     renderer.render(scene, camera);
-    if (active && (!reduced || Math.abs(turnTarget - turn) + Math.abs(tiltTarget - tilt) > 0.0005)) raf = requestAnimationFrame(frameLoop);
+    if (active && (!reduced || Math.abs(turnTarget - turn) + Math.abs(tiltTarget - tilt) + Math.abs(rollTarget - roll) > 0.0005))
+      raf = requestAnimationFrame(frameLoop);
   };
   const kick = () => {
     if (!raf) raf = requestAnimationFrame(frameLoop);
@@ -634,6 +640,10 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
     },
     setTilt: (r) => {
       tiltTarget = r;
+      kick();
+    },
+    setRoll: (r) => {
+      rollTarget = r;
       kick();
     },
     setDial: (d) => {
