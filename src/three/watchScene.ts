@@ -304,15 +304,16 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
     }
   }
 
-  /* ───── bracelet ───── */
-  // links follow a curve that wraps back round the wrist; three links per row,
-  // polished centre and brushed outer links, tapering from 20 to 16 mm
+  /* ───── bracelet: beads of rice ───── */
+  // five rows of links: flat brushed outer links and three rows of small
+  // polished "rice" links between them, on a dark core that shows in the gaps.
+  // A solid end link is fitted to the case between the lugs.
   const braceletCurve = (sy: number) =>
     new THREE.CatmullRomCurve3(
       [
-        new THREE.Vector3(0, sy * 21.4, -1.2),
-        new THREE.Vector3(0, sy * 28.0, -2.8),
-        new THREE.Vector3(0, sy * 35.0, -7.6),
+        new THREE.Vector3(0, sy * 22.4, -1.3),
+        new THREE.Vector3(0, sy * 28.6, -2.9),
+        new THREE.Vector3(0, sy * 35.2, -7.8),
         new THREE.Vector3(0, sy * 40.0, -15.5),
         new THREE.Vector3(0, sy * 42.0, -25.0),
         new THREE.Vector3(0, sy * 41.0, -34.0),
@@ -320,43 +321,63 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
       false,
       'centripetal',
     );
-  const LINK_PITCH = 3.4;
-  const centreGeo = new RoundedBoxGeometry(7.4, 3.1, 2.8, 3, 0.7);
-  const outerGeo = new RoundedBoxGeometry(5.8, 3.1, 2.5, 3, 0.6);
-  const rows: { pos: THREE.Vector3; tan: THREE.Vector3; taper: number }[] = [];
+
+  // fitted end link: fills the space between the lugs and hugs the case
+  const endShape = new THREE.Shape();
+  const ER = CASE_R + 0.2;
+  const EX = 9.9;
+  const EY = Math.sqrt(ER * ER - EX * EX);
+  endShape.moveTo(-EX, 23.0);
+  endShape.lineTo(EX, 23.0);
+  endShape.lineTo(EX, EY);
+  endShape.absarc(0, 0, ER, Math.atan2(EY, EX), Math.atan2(EY, -EX), false);
+  endShape.closePath();
+  const endGeo = new THREE.ExtrudeGeometry(endShape, { depth: 2.6, bevelEnabled: true, bevelSize: 0.4, bevelThickness: 0.4, bevelSegments: 3, curveSegments: 32 });
+  endGeo.translate(0, 0, -2.6);
+  for (const sy of [-1, 1]) {
+    const end = new THREE.Mesh(endGeo, brushed);
+    end.scale.y = sy;
+    watch.add(end);
+  }
+
+  const ROW_PITCH = 2.9;
+  const outerGeo = new RoundedBoxGeometry(4.6, 2.7, 2.6, 3, 0.55);
+  const riceGeo = new THREE.SphereGeometry(1, 24, 16);
+  riceGeo.scale(1.05, 1.32, 0.78); // a grain of rice, long along the bracelet
+  const rows: { pos: THREE.Vector3; tan: THREE.Vector3; taper: number; i: number }[] = [];
   for (const sy of [-1, 1]) {
     const curve = braceletCurve(sy);
     const len = curve.getLength();
-    const n = Math.floor(len / LINK_PITCH);
+    const n = Math.floor(len / ROW_PITCH);
     for (let i = 0; i < n; i++) {
-      const u = (i * LINK_PITCH + LINK_PITCH / 2) / len;
-      rows.push({ pos: curve.getPointAt(u), tan: curve.getTangentAt(u), taper: 1 - 0.2 * u });
+      const u = (i * ROW_PITCH + ROW_PITCH / 2) / len;
+      rows.push({ pos: curve.getPointAt(u), tan: curve.getTangentAt(u), taper: 1 - 0.2 * u, i });
     }
+    // dark core under the links, seen in the gaps
+    const core = new THREE.Shape();
+    core.moveTo(-5.2, -0.5);
+    core.lineTo(5.2, -0.5);
+    core.lineTo(5.2, 0.5);
+    core.lineTo(-5.2, 0.5);
+    core.closePath();
+    watch.add(new THREE.Mesh(new THREE.ExtrudeGeometry(core, { steps: 80, extrudePath: curve, bevelEnabled: false }), darkMetal));
   }
-  const centres = new THREE.InstancedMesh(centreGeo, polished, rows.length);
   const outers = new THREE.InstancedMesh(outerGeo, brushed, rows.length * 2);
+  const rice = new THREE.InstancedMesh(riceGeo, polished, rows.length * 3);
   const X = new THREE.Vector3(1, 0, 0);
   const m = new THREE.Matrix4();
   rows.forEach((r, i) => {
     const y = r.tan.clone().normalize();
-    const z = new THREE.Vector3().crossVectors(X, y).normalize();
-    // centre link
-    m.makeBasis(X, y, z).scale(new THREE.Vector3(r.taper, 1, 1)).setPosition(r.pos);
-    centres.setMatrixAt(i, m);
-    // outer links, pulled in with the taper
-    [-1, 1].forEach((side, j) => {
-      const offset = X.clone().multiplyScalar(side * 6.75 * r.taper);
-      m.makeBasis(X, y, z).scale(new THREE.Vector3(r.taper, 1, 1)).setPosition(r.pos.clone().add(offset).addScaledVector(z, -0.15));
-      outers.setMatrixAt(i * 2 + j, m);
-    });
+    // z must face away from the wrist on both halves of the bracelet
+    const sy = r.pos.y >= 0 ? 1 : -1;
+    const z = new THREE.Vector3().crossVectors(X, y).multiplyScalar(sy).normalize();
+    const x = new THREE.Vector3().crossVectors(y, z).normalize();
+    const place = (dx: number, lift: number) =>
+      m.makeBasis(x, y, z).scale(new THREE.Vector3(r.taper, 1, 1)).setPosition(r.pos.clone().addScaledVector(X, dx * r.taper).addScaledVector(z, lift));
+    [-1, 1].forEach((side, j) => outers.setMatrixAt(i * 2 + j, place(side * 7.3, 0)));
+    [-2.75, 0, 2.75].forEach((dx, j) => rice.setMatrixAt(i * 3 + j, place(dx, 0.35)));
   });
-  watch.add(centres, outers);
-  for (const sy of [-1, 1]) {
-    const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 21.6, 16), polished);
-    bar.rotation.z = Math.PI / 2;
-    bar.position.set(0, sy * 21.4, -1.2);
-    watch.add(bar);
-  }
+  watch.add(outers, rice);
 
   /* ───── caseback ───── */
   watch.add(

@@ -108,12 +108,19 @@ export function WatchFace({ dial: dialId, strap, size = '40', view = 'full', liv
           <stop offset="0.85" stopColor="#24272B" />
           <stop offset="1" stopColor="#0E0F11" />
         </linearGradient>
-        <pattern id={`${id}-links`} width="400" height="22" patternUnits="userSpaceOnUse" y="4">
-          <rect x="0" y="0" width="400" height="22" fill="#4B4E53" />
-          <rect x="133" y="1" width="40" height="20" rx="3" fill={`url(#${id}-lug)`} />
-          <rect x="227" y="1" width="40" height="20" rx="3" fill={`url(#${id}-lug)`} />
-          <rect x="175" y="1" width="50" height="20" rx="5" fill={`url(#${id}-polish)`} />
-          <rect x="179" y="3" width="42" height="2" rx="1" fill="#fff" opacity="0.6" />
+        <radialGradient id={`${id}-rice`} cx="0.35" cy="0.3" r="0.75">
+          <stop offset="0" stopColor="#FFFFFF" />
+          <stop offset="0.45" stopColor="#D9DBDE" />
+          <stop offset="1" stopColor="#7E8186" />
+        </radialGradient>
+        {/* beads of rice: brushed outer links, three rows of polished rice links, dark gaps */}
+        <pattern id={`${id}-links`} width="400" height="17" patternUnits="userSpaceOnUse" y="2">
+          <rect x="0" y="0" width="400" height="17" fill="#2E3034" />
+          <rect x="135" y="1" width="30" height="15" rx="3" fill={`url(#${id}-lug)`} />
+          <rect x="235" y="1" width="30" height="15" rx="3" fill={`url(#${id}-lug)`} />
+          {[181, 200, 219].map((x) => (
+            <ellipse key={x} cx={x} cy="8.5" rx="8" ry="7" fill={`url(#${id}-rice)`} />
+          ))}
         </pattern>
         <pattern id={`${id}-grooves`} width="400" height="12" patternUnits="userSpaceOnUse">
           <rect width="400" height="12" fill={`url(#${id}-rubber)`} />
@@ -372,6 +379,11 @@ function Strap({ id, strap }: { id: string; strap: StrapId }) {
         <path d={bottom} fill={`url(#${id}-links)`} />
         <path d={top} fill="none" stroke="#3E4145" strokeWidth="1" />
         <path d={bottom} fill="none" stroke="#3E4145" strokeWidth="1" />
+        {/* fitted end links, flush with the case between the lugs */}
+        <rect x="137" y="252" width="126" height="48" rx="4" fill={`url(#${id}-lug)`} />
+        <rect x="137" y="500" width="126" height="48" rx="4" fill={`url(#${id}-lug)`} />
+        <rect x="141" y="255" width="118" height="2" rx="1" fill="#fff" opacity="0.5" />
+        <rect x="141" y="543" width="118" height="2" rx="1" fill="#000" opacity="0.25" />
       </g>
     );
   }
