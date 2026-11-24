@@ -20,8 +20,8 @@ const ORANGE = '#d2591f';
 const LUME = '#ede8d6';
 
 export interface WatchSceneOptions {
-  /** how many millimetres of watch must fit the frame, tall and wide */
-  fit?: { h: number; w: number };
+  /** breathing room around the watch: 1 = touching the frame edges, default 1.08 */
+  margin?: number;
   /** starting pose, eased from here to the first target */
   initial?: { turn: number; tilt: number };
   /** resting tilt towards the camera, in radians */
@@ -57,8 +57,7 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
   scene.environment = env;
 
   const camera = new THREE.PerspectiveCamera(26, 1, 1, 1000);
-  camera.position.set(0, 4, 190);
-  camera.lookAt(0, 0, 0);
+  camera.position.set(0, 0, 190); // framed every frame by frameToFit()
 
   const key = new THREE.DirectionalLight('#ffffff', 1.6);
   key.position.set(-60, 90, 120);
@@ -622,6 +621,51 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
   document.fonts?.ready.then(() => paintDial(currentDial));
   let currentDial = dial;
 
+  /* ───── framing ───── */
+  // The watch's own bounding box, measured once. Every frame its eight corners
+  // are turned with the watch and the camera is placed so all of them are in
+  // view, centred, whatever the pose: no part of the bracelet can leave the frame.
+  const localBox = new THREE.Box3();
+  watch.rotation.set(0, 0, 0);
+  watch.updateMatrixWorld(true);
+  watch.traverse((o) => {
+    if (o instanceof THREE.InstancedMesh) {
+      o.computeBoundingBox();
+      if (o.boundingBox) localBox.union(o.boundingBox.clone().applyMatrix4(o.matrixWorld));
+    } else if (o instanceof THREE.Mesh) {
+      o.geometry.computeBoundingBox();
+      if (o.geometry.boundingBox) localBox.union(o.geometry.boundingBox.clone().applyMatrix4(o.matrixWorld));
+    }
+  });
+  const corners = Array.from({ length: 8 }, (_, i) =>
+    new THREE.Vector3(i & 1 ? localBox.max.x : localBox.min.x, i & 2 ? localBox.max.y : localBox.min.y, i & 4 ? localBox.max.z : localBox.min.z),
+  );
+  const rot = new THREE.Matrix4();
+  const tmpV = new THREE.Vector3();
+  const margin = opts.margin ?? 1.08;
+  const frameToFit = () => {
+    rot.makeRotationFromEuler(watch.rotation);
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let minY = Infinity;
+    let maxY = -Infinity;
+    const pts = corners.map((c) => {
+      tmpV.copy(c).applyMatrix4(rot);
+      minX = Math.min(minX, tmpV.x);
+      maxX = Math.max(maxX, tmpV.x);
+      minY = Math.min(minY, tmpV.y);
+      maxY = Math.max(maxY, tmpV.y);
+      return tmpV.clone();
+    });
+    const cx = (minX + maxX) / 2;
+    const cy = (minY + maxY) / 2;
+    const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) / margin;
+    const tanH = tanV * camera.aspect;
+    let d = 0;
+    for (const p of pts) d = Math.max(d, p.z + Math.max(Math.abs(p.x - cx) / tanH, Math.abs(p.y - cy) / tanV));
+    camera.position.set(cx, cy, d);
+  };
+
   /* ───── loop ───── */
   let turnTarget = 0;
   let tiltTarget = opts.tilt ?? 0.1;
@@ -652,6 +696,7 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
     tilt += (tiltTarget - tilt) * k;
     roll += (rollTarget - roll) * k;
     watch.rotation.set(tilt, turn, roll);
+    frameToFit();
     if (floating) watch.position.y = Math.sin((performance.now() - t0) / 1400) * 0.9;
     setHands();
     renderer.render(scene, camera);
@@ -668,13 +713,6 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
     if (!w || !h) return;
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
-    // keep the whole watch (about 90 mm tall, 50 mm wide) in frame at any aspect
-    const fitH = opts.fit?.h ?? 100;
-    const fitW = opts.fit?.w ?? 66;
-    const vFov = THREE.MathUtils.degToRad(camera.fov);
-    const distH = fitH / 2 / Math.tan(vFov / 2);
-    const distW = fitW / 2 / (Math.tan(vFov / 2) * camera.aspect);
-    camera.position.z = Math.max(distH, distW);
     camera.updateProjectionMatrix();
     kick();
   };

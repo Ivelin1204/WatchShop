@@ -137,7 +137,7 @@ function Bench({ day, started, done, reduced }: { day: number; started: boolean;
         const { createWatchScene } = await import('../three/watchScene');
         if (disposed || !canvas.current) return;
         const s = createWatchScene(canvas.current, dialById('slate'), reduced, {
-          fit: { h: 104, w: 104 },
+          margin: 1.12,
           tilt: DAYS[0].pose.tilt,
           initial: { turn: DAYS[0].pose.turn, tilt: DAYS[0].pose.tilt },
         });
