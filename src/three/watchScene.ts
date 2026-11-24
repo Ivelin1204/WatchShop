@@ -56,7 +56,7 @@ export interface WatchScene {
  */
 function studioEnvironment() {
   const room = new THREE.Scene();
-  room.background = new THREE.Color('#1c1d20');
+  room.background = new THREE.Color('#25262a');
   const panel = (w: number, h: number, intensity: number, pos: [number, number, number], tint = '#ffffff') => {
     const m = new THREE.Mesh(
       new THREE.PlaneGeometry(w, h),
@@ -99,7 +99,7 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
   scene.add(new THREE.AmbientLight('#ffffff', 0.15));
 
   /* ───── materials ───── */
-  const brushed = new THREE.MeshPhysicalMaterial({ color: '#cfd2d6', metalness: 1, roughness: 0.3, clearcoat: 0.15, side: THREE.DoubleSide });
+  const brushed = new THREE.MeshPhysicalMaterial({ color: '#d2d5d9', metalness: 1, roughness: 0.36, clearcoat: 0.15, side: THREE.DoubleSide });
   const polished = new THREE.MeshPhysicalMaterial({ color: '#eef0f2', metalness: 1, roughness: 0.06, side: THREE.DoubleSide });
   const darkMetal = new THREE.MeshStandardMaterial({ color: '#2a2c30', metalness: 0.6, roughness: 0.45, side: THREE.DoubleSide });
   const lume = new THREE.MeshStandardMaterial({ color: LUME, roughness: 0.6, emissive: '#9fb08a', emissiveIntensity: 0.06 });
@@ -382,17 +382,25 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
   lugShape.quadraticCurveTo(7.6, -3.6, 5.6, -3.4);
   lugShape.lineTo(0, -2.6);
   lugShape.closePath();
-  const lugGeo = new THREE.ExtrudeGeometry(lugShape, { depth: 2.6, bevelEnabled: true, bevelSize: 0.4, bevelThickness: 0.4, bevelSegments: 3 });
-  lugGeo.translate(0, 0, -1.3);
+  const lugGeo = new THREE.ExtrudeGeometry(lugShape, { depth: 2.2, bevelEnabled: true, bevelSize: 0.45, bevelThickness: 0.45, bevelSegments: 4 });
+  lugGeo.translate(0, 0, -1.1);
+  {
+    // taper: full width at the case, two thirds at the tip, narrowing on the outside edge
+    const pos = lugGeo.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      const out = Math.max(0, Math.min(1, pos.getX(i) / 8.7)); // shape x runs outward from the case
+      const z = pos.getZ(i); // extrusion: across the watch, -1.55..1.55
+      pos.setZ(i, z - (z + 1.55) * 0.34 * out);
+    }
+  }
   // (x, y, z) -> (z, x, y): shape x becomes +Y, shape y becomes +Z, extrusion becomes X
   lugGeo.applyMatrix4(new THREE.Matrix4().set(0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1));
   lugGeo.computeVertexNormals();
   for (const sx of [-1, 1]) {
     for (const sy of [-1, 1]) {
-      // flanks polished, top and ends brushed, like the photographs
-      const lug = new THREE.Mesh(lugGeo, [polished, brushed]);
+      const lug = new THREE.Mesh(lugGeo, brushed);
       lug.position.set(sx * 11.55, sy * 14.8, 0);
-      lug.scale.y = sy; // mirror for the 6 o'clock side
+      lug.scale.set(sx, sy, 1); // mirror for the left side and the 6 o'clock side
       watch.add(lug);
     }
   }
@@ -444,31 +452,38 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
       'centripetal',
     );
 
-  // fitted end link: fills the space between the lugs and hugs the case
-  const endShape = new THREE.Shape();
-  const ER = CASE_R + 0.2;
-  const EX = 9.9;
-  const EY = Math.sqrt(ER * ER - EX * EX);
-  endShape.moveTo(-EX, 23.0);
-  endShape.lineTo(EX, 23.0);
-  endShape.lineTo(EX, EY);
-  endShape.absarc(0, 0, ER, Math.atan2(EY, EX), Math.atan2(EY, -EX), false);
-  endShape.closePath();
-  const endGeo = new THREE.ExtrudeGeometry(endShape, { depth: 2.6, bevelEnabled: true, bevelSize: 0.4, bevelThickness: 0.4, bevelSegments: 3, curveSegments: 32 });
-  endGeo.translate(0, 0, -2.6);
+  // the case's hood between the lugs: the case runs on past the bezel at 12 and 6
+  // and slopes down to meet the strap or bracelet, so case and lugs read as one piece.
+  // Drawn as a side profile like the lugs and extruded across the watch; the part
+  // nearest the dial sits inside the case wall, so no seam shows.
+  const HOOD_END = 22.0;
+  const hoodShape = new THREE.Shape();
+  hoodShape.moveTo(16.6, 3.6);
+  hoodShape.lineTo(20.4, 3.05);
+  hoodShape.quadraticCurveTo(21.95, 2.7, HOOD_END, 1.0);
+  hoodShape.lineTo(HOOD_END - 0.1, -1.6);
+  hoodShape.quadraticCurveTo(HOOD_END - 0.3, -2.4, HOOD_END - 1.2, -2.4);
+  hoodShape.lineTo(16.6, -2.4);
+  hoodShape.closePath();
+  const HOOD_W = 19.6;
+  const endGeo = new THREE.ExtrudeGeometry(hoodShape, { depth: HOOD_W, bevelEnabled: true, bevelSize: 0.3, bevelThickness: 0.3, bevelSegments: 3, curveSegments: 24 });
+  endGeo.translate(0, 0, -HOOD_W / 2);
+  // (x, y, z) -> (z, x, y): shape x becomes +Y, shape y becomes +Z, extrusion becomes X
+  endGeo.applyMatrix4(new THREE.Matrix4().set(0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1));
+  endGeo.computeVertexNormals();
   const braceletParts = new THREE.Group();
   watch.add(braceletParts);
   for (const sy of [-1, 1]) {
-    const end = new THREE.Mesh(endGeo, brushed);
-    end.scale.y = sy;
-    braceletParts.add(end);
+    const hood = new THREE.Mesh(endGeo, brushed);
+    hood.scale.y = sy;
+    watch.add(hood);
   }
 
-  const ROW_PITCH = 2.9;
-  const outerGeo = new RoundedBoxGeometry(4.6, 2.7, 2.6, 3, 0.55);
+  const ROW_PITCH = 3.7;
+  const outerGeo = new RoundedBoxGeometry(5.0, 3.5, 2.6, 3, 0.55);
   // centre links: long polished pills packed tight, so the middle of the
   // bracelet reads as one smooth surface with fine dark seams between links
-  const riceGeo = new RoundedBoxGeometry(3.15, 2.78, 2.5, 4, 0.9);
+  const riceGeo = new RoundedBoxGeometry(2.45, 3.55, 2.5, 4, 1.0);
   const rows: { pos: THREE.Vector3; tan: THREE.Vector3; taper: number }[] = [];
   const nRows = Math.floor(loopLen / ROW_PITCH);
   for (let i = 0; i < nRows; i++) {
@@ -496,11 +511,10 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
     const { x, y, z } = basis(r.pos, r.tan);
     const place = (dx: number, lift: number) =>
       m.makeBasis(x, y, z).scale(new THREE.Vector3(r.taper, 1, 1)).setPosition(r.pos.clone().addScaledVector(X, dx * r.taper).addScaledVector(z, lift));
-    [-1, 1].forEach((side, j) => outers.setMatrixAt(i * 2 + j, place(side * 7.3, 0)));
-    [-3.32, 0, 3.32].forEach((dx, j) => rice.setMatrixAt(i * 3 + j, place(dx, 0.1)));
+    [-1, 1].forEach((side, j) => outers.setMatrixAt(i * 2 + j, place(side * 7.05, 0)));
+    [-2.7, 0, 2.7].forEach((dx, j) => rice.setMatrixAt(i * 3 + j, place(dx, 0.1)));
   });
   braceletParts.add(outers, rice);
-
   // fold-over clasp under the wrist: polished cover, brushed inlay with the
   // Merid mark, and a release button either side
   {
