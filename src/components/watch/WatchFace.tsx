@@ -59,7 +59,7 @@ export function WatchFace({ dial: dialId, strap, size = '40', view = 'full', liv
   useWatchHands(svgRef, hands, CX, CY, live, SUB_L);
 
   const date = new Date().getDate();
-  const steel = dial.dark ? `url(#${id}-polish)` : '#1B1D20';
+  const facet = dial.dark ? `url(#${id}-facet)` : `url(#${id}-facetDark)`;
   const lume = '#EFEBDD';
 
   return (
@@ -122,12 +122,17 @@ export function WatchFace({ dial: dialId, strap, size = '40', view = 'full', liv
           <stop offset="1" stopColor="#7E8186" />
         </radialGradient>
         {/* beads of rice: brushed outer links, three rows of polished rice links, dark gaps */}
-        <pattern id={`${id}-links`} width="400" height="17" patternUnits="userSpaceOnUse" y="2">
-          <rect x="0" y="0" width="400" height="17" fill="#2E3034" />
-          <rect x="136" y="1" width="31" height="15" rx="3" fill={`url(#${id}-lug)`} />
-          <rect x="231" y="1" width="33" height="15" rx="3" fill={`url(#${id}-lug)`} />
-          {[168, 189, 210].map((x) => (
-            <rect key={x} x={x} y="1" width="20" height="15" rx="6.5" fill={`url(#${id}-rice)`} />
+        <pattern id={`${id}-links`} width="400" height="28" patternUnits="userSpaceOnUse" y="2">
+          <rect x="0" y="0" width="400" height="28" fill="#1E2023" />
+          {[136, 233].map((x) => (
+            <g key={x}>
+              <rect x={x} y="1" width="31" height="26" rx="2.5" fill={`url(#${id}-lug)`} />
+              <rect x={x + 1} y="1.6" width="29" height="1.2" rx="0.6" fill="#fff" opacity="0.55" />
+              <rect x={x + 1} y="25" width="29" height="1.2" rx="0.6" fill="#000" opacity="0.3" />
+            </g>
+          ))}
+          {[169.5, 190, 210.5].map((x) => (
+            <rect key={x} x={x} y="1.5" width="19" height="25" rx="9" fill={`url(#${id}-rice)`} />
           ))}
         </pattern>
         <pattern id={`${id}-grooves`} width="400" height="12" patternUnits="userSpaceOnUse">
@@ -146,6 +151,52 @@ export function WatchFace({ dial: dialId, strap, size = '40', view = 'full', liv
             <feMergeNode in="SourceGraphic" />
           </feMerge>
         </filter>
+        {/* brushed steel across a lug or the hood: light down the middle, darker at the edges */}
+        <linearGradient id={`${id}-hood`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#8E9297" />
+          <stop offset="0.35" stopColor="#D9DCDF" />
+          <stop offset="0.75" stopColor="#B7BBBF" />
+          <stop offset="1" stopColor="#7A7E83" />
+        </linearGradient>
+        <linearGradient id={`${id}-bezel`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#FFFFFF" />
+          <stop offset="0.22" stopColor="#B9BCC0" />
+          <stop offset="0.42" stopColor="#5F6368" />
+          <stop offset="0.6" stopColor="#F2F3F4" />
+          <stop offset="0.8" stopColor="#8D9196" />
+          <stop offset="1" stopColor="#E4E6E8" />
+        </linearGradient>
+        <radialGradient id={`${id}-rehaut`} cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0.9" stopColor={dial.sub} />
+          <stop offset="1" stopColor={dial.dark ? '#0E0F11' : '#8F8B82'} />
+        </radialGradient>
+        {/* faceted hands and markers: one side lit, the other in shade */}
+        <linearGradient id={`${id}-facet`} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="#FFFFFF" />
+          <stop offset="0.49" stopColor="#D3D6D9" />
+          <stop offset="0.51" stopColor="#7C8085" />
+          <stop offset="1" stopColor="#A9ADB1" />
+        </linearGradient>
+        <linearGradient id={`${id}-facetDark`} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="#4A4D52" />
+          <stop offset="0.49" stopColor="#2A2C30" />
+          <stop offset="0.51" stopColor="#0F1012" />
+          <stop offset="1" stopColor="#1E2023" />
+        </linearGradient>
+        <linearGradient id={`${id}-pump`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#6F7378" />
+          <stop offset="0.25" stopColor="#F5F6F7" />
+          <stop offset="0.5" stopColor="#A3A7AB" />
+          <stop offset="0.8" stopColor="#E1E3E5" />
+          <stop offset="1" stopColor="#5E6267" />
+        </linearGradient>
+        <radialGradient id={`${id}-dome`} cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0.8" stopColor="#000" stopOpacity="0" />
+          <stop offset="1" stopColor="#000" stopOpacity="0.35" />
+        </radialGradient>
+        <filter id={`${id}-soft`} x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="9" />
+        </filter>
         <clipPath id={`${id}-dialclip`}>
           <circle cx={CX} cy={CY} r="111" />
         </clipPath>
@@ -154,16 +205,30 @@ export function WatchFace({ dial: dialId, strap, size = '40', view = 'full', liv
       <g transform={`translate(${CX} ${CY}) scale(${scale}) translate(${-CX} ${-CY})`}>
         <Strap id={id} strap={strap} />
 
-        {/* lugs */}
+        {/* the case's hood between the lugs at 12 and 6, sloping down to the strap */}
+        {[false, true].map((flip) => (
+          <g key={String(flip)} transform={flip ? `translate(0 ${CY * 2}) scale(1 -1)` : undefined}>
+            <rect x="136" y="244" width="128" height="70" fill={`url(#${id}-hood)`} />
+            <rect x="136" y="244" width="128" height="2.4" fill="#2A2C30" opacity="0.7" />
+            <rect x="136" y="246.4" width="128" height="1" fill="#fff" opacity="0.5" />
+          </g>
+        ))}
+
+        {/* lugs: tapered, brushed on top, a polished bevel down the outside */}
         {[
-          [122, 222],
-          [262, 222],
-          [122, 474],
-          [262, 474],
-        ].map(([x, y]) => (
-          <g key={`${x}-${y}`}>
-            <rect x={x} y={y} width="16" height="104" rx="8" fill={`url(#${id}-lug)`} />
-            <rect x={x + 3.5} y={y + 6} width="2" height="92" rx="1" fill="#fff" opacity="0.55" />
+          [false, false],
+          [true, false],
+          [false, true],
+          [true, true],
+        ].map(([fx, fy]) => (
+          <g
+            key={`${fx}${fy}`}
+            transform={`${fx ? `translate(${CX * 2} 0) scale(-1 1)` : ''} ${fy ? `translate(0 ${CY * 2}) scale(1 -1)` : ''}`}
+          >
+            <path d="M138.5,330 L138.5,230 Q138.5,220 130,220 Q122,220 121,230 L114.5,330 Z" fill={`url(#${id}-lug)`} />
+            <path d="M116,326 L121.6,232" stroke="#fff" strokeOpacity="0.75" strokeWidth="1.6" strokeLinecap="round" />
+            <path d="M114.6,330 L120.8,230" stroke="#3C3F43" strokeOpacity="0.6" strokeWidth="0.6" />
+            <path d="M137.6,326 L137.6,232" stroke="#000" strokeOpacity="0.25" strokeWidth="1.2" />
           </g>
         ))}
 
@@ -188,27 +253,33 @@ export function WatchFace({ dial: dialId, strap, size = '40', view = 'full', liv
           return (
             <g key={a} transform={`rotate(${a} ${CX} ${CY})`}>
               <g {...press}>
-                <rect x="328" y="393" width="12" height="14" rx="2" fill="#9A9DA1" />
-                <rect x="338" y="387" width="15" height="26" rx="5" fill={`url(#${id}-lug)`} />
-                <rect x="349" y="389" width="2.5" height="22" rx="1.2" fill="#fff" opacity="0.6" />
+                <rect x="328" y="392.5" width="13" height="15" rx="1.5" fill={`url(#${id}-pump)`} />
+                <rect x="339" y="386" width="14" height="28" rx="3" fill={`url(#${id}-pump)`} />
+                <rect x="352" y="387" width="3.2" height="26" rx="1.4" fill={`url(#${id}-pump)`} />
+                <rect x="339" y="386" width="14" height="28" rx="3" fill="none" stroke="#4A4D52" strokeWidth="0.5" />
               </g>
             </g>
           );
         })}
 
         {/* crown */}
-        <rect x="324" y="390" width="12" height="20" rx="2" fill="#9A9DA1" />
-        <rect x="332" y="378" width="24" height="44" rx="6" fill={`url(#${id}-lug)`} />
-        {Array.from({ length: 8 }, (_, i) => (
-          <rect key={i} x={335 + i * 2.6} y="379" width="1.2" height="42" fill="#6E7175" opacity="0.6" />
+        <rect x="324" y="389" width="12" height="22" rx="1.5" fill={`url(#${id}-pump)`} />
+        <rect x="333" y="376" width="22" height="48" rx="4" fill={`url(#${id}-pump)`} />
+        {Array.from({ length: 22 }, (_, i) => (
+          <rect key={i} x="333.5" y={377.5 + i * 2.1} width="21" height="0.9" fill="#4E5156" opacity="0.55" />
         ))}
+        <rect x="353" y="377" width="3.4" height="46" rx="1.6" fill={`url(#${id}-pump)`} />
+        <rect x="333" y="376" width="22" height="48" rx="4" fill="none" stroke="#45484C" strokeWidth="0.5" />
 
         {/* case and bezel */}
-        <circle cx={CX} cy={CY} r="133" fill={`url(#${id}-brushed)`} />
-        <circle cx={CX} cy={CY} r="132.2" fill="none" stroke="#fff" strokeOpacity="0.55" strokeWidth="1" />
-        <circle cx={CX} cy={CY} r="127" fill={`url(#${id}-polish)`} />
-        <circle cx={CX} cy={CY} r="120" fill="none" stroke="#000" strokeOpacity="0.18" strokeWidth="1.5" />
-        <circle cx={CX} cy={CY} r="118" fill="#25272B" />
+        <circle cx={CX} cy={CY + 2} r="134" fill="#000" opacity="0.35" />
+        <circle cx={CX} cy={CY} r="134" fill={`url(#${id}-brushed)`} />
+        <circle cx={CX} cy={CY} r="133.2" fill="none" stroke="#fff" strokeOpacity="0.6" strokeWidth="0.9" />
+        <circle cx={CX} cy={CY} r="129.5" fill="#4A4D52" />
+        <circle cx={CX} cy={CY} r="129" fill={`url(#${id}-bezel)`} />
+        <circle cx={CX} cy={CY} r="122.5" fill="none" stroke="#fff" strokeOpacity="0.5" strokeWidth="0.8" />
+        <circle cx={CX} cy={CY} r="121" fill={dial.dark ? '#0E0F11' : '#5E6166'} />
+        <circle cx={CX} cy={CY} r="119.6" fill={`url(#${id}-rehaut)`} />
         {/* rehaut with its own minute scale */}
         {Array.from({ length: 60 }, (_, i) => (
           <line
@@ -227,6 +298,12 @@ export function WatchFace({ dial: dialId, strap, size = '40', view = 'full', liv
         {/* dial */}
         <circle cx={CX} cy={CY} r="111" fill={`url(#${id}-dial)`} />
         <Sunburst id={id} dark={dial.dark} />
+        <g clipPath={`url(#${id}-dialclip)`} filter={`url(#${id}-soft)`}>
+          <path d={sector(-62, -18)} fill="#fff" opacity={dial.dark ? 0.2 : 0.35} />
+          <path d={sector(118, 162)} fill="#fff" opacity={dial.dark ? 0.16 : 0.3} />
+          <path d={sector(28, 72)} fill="#000" opacity={dial.dark ? 0.28 : 0.08} />
+          <path d={sector(208, 252)} fill="#000" opacity={dial.dark ? 0.28 : 0.08} />
+        </g>
 
         {/* fifth-of-a-second track */}
         {Array.from({ length: 240 }, (_, i) => {
@@ -258,18 +335,24 @@ export function WatchFace({ dial: dialId, strap, size = '40', view = 'full', liv
               <g key={i}>
                 {[-5.5, 5.5].map((dx) => (
                   <g key={dx}>
-                    <rect x={CX + dx - 3.3} y={CY - 98} width="6.6" height="24" rx="1.4" fill={steel} />
-                    <rect className="lume" x={CX + dx - 1.3} y={CY - 95} width="2.6" height="18" rx="0.8" fill={lume} />
+                    <rect x={CX + dx - 3.3} y={CY - 98} width="6.6" height="24" rx="1.2" fill={facet} />
+                    <rect className="lume" x={CX + dx - 1.3} y={CY - 95.5} width="2.6" height="19" rx="0.8" fill={lume} />
                   </g>
                 ))}
               </g>
             ) : (
               <g key={i} transform={`rotate(${i * 30} ${CX} ${CY})`}>
-                <rect x={CX - 3.3} y={CY - 98} width="6.6" height="21" rx="1.4" fill={steel} />
-                <rect className="lume" x={CX - 1.3} y={CY - 95} width="2.6" height="15" rx="0.8" fill={lume} />
+                <rect x={CX - 3.3} y={CY - 98} width="6.6" height="21" rx="1.2" fill={facet} />
+                <rect className="lume" x={CX - 1.3} y={CY - 95.5} width="2.6" height="16" rx="0.8" fill={lume} />
               </g>
             ),
           )}
+          {[3, 6, 9].map((i) => (
+            <g key={i} transform={`rotate(${i * 30} ${CX} ${CY})`}>
+              <rect x={CX - 3} y={CY - 98} width="6" height="10" rx="1.1" fill={facet} />
+              <rect className="lume" x={CX - 1.1} y={CY - 96} width="2.2" height="6" rx="0.6" fill={lume} />
+            </g>
+          ))}
         </g>
 
         {/* date at 6 */}
@@ -280,10 +363,10 @@ export function WatchFace({ dial: dialId, strap, size = '40', view = 'full', liv
         </text>
 
         {/* printing */}
-        <text x={CX + 1.6} y={CY - 52} textAnchor="middle" fontSize="12.5" fontWeight="700" letterSpacing="4" fill={dial.print} fontFamily={FONT}>
+        <text x={CX + 1.6} y={CY - 50} textAnchor="middle" fontSize="15" fontWeight="600" letterSpacing="3.4" fill={dial.print} fontFamily={FONT}>
           MERID
         </text>
-        <text x={CX + 1.2} y={CY - 42} textAnchor="middle" fontSize="5.6" fontWeight="600" letterSpacing="2.4" fill={dial.print} fillOpacity="0.75" fontFamily={FONT}>
+        <text x={CX + 1.2} y={CY - 38} textAnchor="middle" fontSize="6.2" fontWeight="600" letterSpacing="2.2" fill={dial.print} fillOpacity="0.85" fontFamily={FONT}>
           AUTOMATIC
         </text>
         <text x={CX + 1} y={CY + 50} textAnchor="middle" fontSize="5.4" fontWeight="700" letterSpacing="2" fill={ORANGE} fontFamily={FONT}>
@@ -319,24 +402,25 @@ export function WatchFace({ dial: dialId, strap, size = '40', view = 'full', liv
           <circle cx={SUB_R[0]} cy={SUB_R[1]} r="2.2" fill={dial.print} />
 
           <g ref={hour}>
-            <path className="hand-body" d="M200,334 L205,342 L205,408 L195,408 L195,342 Z" fill={steel} />
-            <rect className="lume" x="197.4" y="344" width="5.2" height="50" rx="1" fill={night ? '#C9F7C6' : lume} filter={night ? `url(#${id}-glow)` : undefined} />
+            <path className="hand-body" d="M200,332 L206.5,354 L202.8,400 Q203.8,406 202.2,411 L197.8,411 Q196.2,406 197.2,400 L193.5,354 Z" fill={facet} />
+            <path className="lume" d="M200,345 L202.3,357 L200.8,390 L199.2,390 L197.7,357 Z" fill={night ? '#C9F7C6' : lume} filter={night ? `url(#${id}-glow)` : undefined} />
           </g>
           <g ref={minute}>
-            <path className="hand-body" d="M200,300 L204.2,308 L204.2,410 L195.8,410 L195.8,308 Z" fill={steel} />
-            <rect className="lume" x="197.8" y="310" width="4.4" height="84" rx="1" fill={night ? '#C9F7C6' : lume} filter={night ? `url(#${id}-glow)` : undefined} />
+            <path className="hand-body" d="M200,298 L205,326 L202.3,400 Q203.2,406 201.9,412 L198.1,412 Q196.8,406 197.7,400 L195,326 Z" fill={facet} />
+            <path className="lume" d="M200,311 L201.8,329 L200.7,388 L199.3,388 L198.2,329 Z" fill={night ? '#C9F7C6' : lume} filter={night ? `url(#${id}-glow)` : undefined} />
           </g>
           {/* chronograph seconds, resting at 12 unless the caller runs it */}
           <g ref={chronoHandRef}>
-            <rect x="199.35" y="292" width="1.3" height="134" rx="0.65" fill={ORANGE} />
-            <path d="M196.6,426 L203.4,426 L200,436 Z" fill={ORANGE} />
+            <rect x="199.4" y="290" width="1.2" height="134" rx="0.6" fill={ORANGE} />
+            <rect x="198.6" y="410" width="2.8" height="14" rx="1.2" fill={ORANGE} />
           </g>
-          <circle cx={CX} cy={CY} r="5" fill={`url(#${id}-polish)`} />
-          <circle cx={CX} cy={CY} r="2" fill={ORANGE} />
+          <circle cx={CX} cy={CY} r="4.6" fill={ORANGE} />
+          <circle cx={CX} cy={CY} r="1.6" fill="#7A2E0C" />
         </g>
 
         {/* crystal */}
-        <circle cx={CX} cy={CY} r="118" fill={`url(#${id}-glass)`} pointerEvents="none" />
+        <circle cx={CX} cy={CY} r="119.6" fill={`url(#${id}-dome)`} pointerEvents="none" />
+        <circle cx={CX} cy={CY} r="119.6" fill={`url(#${id}-glass)`} pointerEvents="none" />
         <path
           d={`M ${CX - 94} ${CY - 48} A 106 106 0 0 1 ${CX - 30} ${CY - 102}`}
           stroke="#fff"
@@ -348,6 +432,15 @@ export function WatchFace({ dial: dialId, strap, size = '40', view = 'full', liv
       </g>
     </svg>
   );
+}
+
+/** A wedge of the dial between two clock angles (degrees from 12), for the sunburst's light and shade. */
+function sector(a1: number, a2: number, r = 130) {
+  const p = (a: number) => {
+    const t = (a * Math.PI) / 180;
+    return `${(CX + Math.sin(t) * r).toFixed(1)},${(CY - Math.cos(t) * r).toFixed(1)}`;
+  };
+  return `M ${CX},${CY} L ${p(a1)} A ${r},${r} 0 0 1 ${p(a2)} Z`;
 }
 
 function Sunburst({ id, dark }: { id: string; dark: boolean }) {
@@ -434,11 +527,6 @@ function Strap({ id, strap }: { id: string; strap: StrapId }) {
         <path d={bottom} fill={`url(#${id}-links)`} />
         <path d={top} fill="none" stroke="#3E4145" strokeWidth="1" />
         <path d={bottom} fill="none" stroke="#3E4145" strokeWidth="1" />
-        {/* fitted end links, flush with the case between the lugs */}
-        <rect x="137" y="252" width="126" height="48" rx="4" fill={`url(#${id}-lug)`} />
-        <rect x="137" y="500" width="126" height="48" rx="4" fill={`url(#${id}-lug)`} />
-        <rect x="141" y="255" width="118" height="2" rx="1" fill="#fff" opacity="0.5" />
-        <rect x="141" y="543" width="118" height="2" rx="1" fill="#000" opacity="0.25" />
       </g>
     );
   }
