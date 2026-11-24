@@ -391,6 +391,9 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
   const GAP_A = 0.35;
   const GAP_B = 0.65;
   const CLASP_U = OPEN ? GAP_A - CLASP_HALF / loopLen : 0.5;
+  // open bracelet: the free end finishes in the clasp blade that tucks under the cover
+  const BLADE_LEN = 19;
+  const BLADE_U = GAP_B + BLADE_LEN / loopLen;
   const subCurve = (u0: number, u1: number) =>
     new THREE.CatmullRomCurve3(
       Array.from({ length: 41 }, (_, i) => loop.getPointAt(u0 + ((u1 - u0) * i) / 40)),
@@ -429,7 +432,7 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
     const u = (i * ROW_PITCH + ROW_PITCH / 2) / loopLen;
     const pos = loop.getPointAt(u);
     if (!OPEN && pos.z < -40 && Math.abs(pos.y) < CLASP_HALF) continue; // under the clasp
-    if (OPEN && u > CLASP_U - CLASP_HALF / loopLen && u < GAP_B) continue; // clasp and the open gap
+    if (OPEN && u > CLASP_U - CLASP_HALF / loopLen && u < BLADE_U + 0.6 / loopLen) continue; // clasp, gap and blade
     const f = Math.min(u, 1 - u) * 2; // 0 at the case, 1 at the clasp
     rows.push({ pos, tan: loop.getTangentAt(u), taper: 1 - 0.2 * Math.min(1, f * 1.15) });
   }
@@ -501,6 +504,48 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
     sh.quadraticCurveTo(-w / 2, -r, -w / 2 + r, -r);
     return sh;
   };
+  // clasp blade on the free end of an open bracelet: a brushed plate that follows
+  // the curve, a rounded tip, a polished locking lip and the hinge bar to the links
+  if (OPEN) {
+    const blade = new THREE.ExtrudeGeometry(strapShape(15.2, 1.5), { steps: 24, extrudePath: subCurve(GAP_B + 7.6 / loopLen, BLADE_U), bevelEnabled: false });
+    const bladeMesh = new THREE.Mesh(blade, brushed);
+    // the blade sits on the inner side of the links, under where the cover folds over
+    const at = (u: number, lift: number) => {
+      const pos = loop.getPointAt(u);
+      const b = basis(pos, loop.getTangentAt(u));
+      return { pos: pos.clone().addScaledVector(b.z, lift), ...b };
+    };
+    bladeMesh.position.copy(at(GAP_B + 10 / loopLen, -0.5).z.clone().multiplyScalar(-0.5));
+    braceletParts.add(bladeMesh);
+    // rounded tip: half of a flat disc, flush with the plate
+    {
+      const { pos, x, y, z } = at(GAP_B + 7.6 / loopLen, -0.5);
+      const tip = new THREE.Mesh(new THREE.CylinderGeometry(7.6, 7.6, 1.5, 48, 1, false, Math.PI / 2, Math.PI), brushed);
+      tip.matrixAutoUpdate = false;
+      // cylinder axis (local y) along the bracelet's normal, the half disc pointing away from the links
+      tip.matrix.makeBasis(x.clone().negate(), z, y).setPosition(pos);
+      braceletParts.add(tip);
+      const lip = new THREE.Mesh(new RoundedBoxGeometry(9, 1.4, 1.6, 2, 0.5), polished);
+      const l = at(GAP_B + 9.5 / loopLen, 0.9);
+      lip.matrixAutoUpdate = false;
+      lip.matrix.makeBasis(l.x, l.y, l.z).setPosition(l.pos);
+      braceletParts.add(lip);
+    }
+    // hinge: a knuckle across the width where the blade meets the first row of links
+    {
+      const { pos, x, y, z } = at(BLADE_U, 0);
+      const knuckle = new THREE.Mesh(new THREE.CylinderGeometry(1.35, 1.35, 16.6, 24), polished);
+      knuckle.matrixAutoUpdate = false;
+      knuckle.matrix.makeBasis(y, x.clone().negate(), z).setPosition(pos);
+      braceletParts.add(knuckle);
+      for (const side of [-1, 1]) {
+        const cap = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 0.8, 24), brushed);
+        cap.matrixAutoUpdate = false;
+        cap.matrix.makeBasis(y, x.clone().negate(), z).setPosition(pos.clone().addScaledVector(x, side * 8.7));
+        braceletParts.add(cap);
+      }
+    }
+  }
   const strapGeos = OPEN
     ? [
         new THREE.ExtrudeGeometry(strapShape(19.4, 3.2), { steps: 80, extrudePath: subCurve(0, GAP_A), bevelEnabled: false }),
