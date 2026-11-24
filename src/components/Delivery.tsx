@@ -1,32 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { BRAND, COUNTRIES, FAQ, MODEL, SHIPPING, SHIP_CUTOFF_HOUR } from '../data/product';
+import { BRAND, COUNTRIES, FAQ, MODEL, SHIP_CUTOFF_HOUR } from '../data/product';
+import { addWorkingDays, deliveryWindow, sameDay, shortDate } from '../lib/shipping';
 import { Select } from './Select';
 
-/* ───── working-day arithmetic ───── */
-const isWeekend = (d: Date) => d.getDay() === 0 || d.getDay() === 6;
-const addWorkingDays = (from: Date, n: number) => {
-  const d = new Date(from);
-  let left = n;
-  while (left > 0) {
-    d.setDate(d.getDate() + 1);
-    if (!isWeekend(d)) left--;
-  }
-  return d;
-};
-/** the day the parcel leaves Sofia: today before the cut-off on a weekday, otherwise the next working day */
-const dispatchDay = (now: Date) => {
-  const d = new Date(now);
-  if (isWeekend(d) || d.getHours() >= SHIP_CUTOFF_HOUR) return addWorkingDays(d, 1);
-  return d;
-};
-const fmt = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-const sameDay = (a: Date, b: Date) => a.toDateString() === b.toDateString();
-const dayWord = (d: Date, now: Date) => (sameDay(d, now) ? 'Today' : sameDay(d, addDays(now, 1)) ? 'Tomorrow' : fmt.format(d));
+const fmt = shortDate;
 const addDays = (d: Date, n: number) => {
   const x = new Date(d);
   x.setDate(x.getDate() + n);
   return x;
 };
+const dayWord = (d: Date, now: Date) => (sameDay(d, now) ? 'Today' : sameDay(d, addDays(now, 1)) ? 'Tomorrow' : fmt.format(d));
 
 export function Delivery() {
   const [country, setCountry] = useState('Bulgaria');
@@ -34,17 +17,8 @@ export function Delivery() {
   const [run, setRun] = useState(0); // restarts the parcel animation
   const ref = useRef<HTMLElement>(null);
 
-  const zone = SHIPPING.find((z) => z.country === country) ?? SHIPPING[0];
-  const plan = useMemo(() => {
-    const now = new Date();
-    const leaves = dispatchDay(now);
-    return {
-      now,
-      leaves,
-      earliest: addWorkingDays(leaves, zone.days[0]),
-      latest: addWorkingDays(leaves, zone.days[1]),
-    };
-  }, [zone]);
+  const plan = useMemo(() => deliveryWindow(country), [country]);
+  const zone = plan.zone;
 
   // play the parcel's trip the first time the section comes into view
   useEffect(() => {

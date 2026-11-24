@@ -21,7 +21,7 @@ const CHECKOUT_ENDPOINT: string | null = import.meta.env.VITE_CHECKOUT_ENDPOINT 
 
 export async function startCheckout(items: CartItem[], shipping: ShippingDetails): Promise<CheckoutResult> {
   if (!CHECKOUT_ENDPOINT) {
-    return { ok: false, reason: 'Online payment is not connected yet. Write to us and we will reserve your watch.' };
+    return { ok: false, reason: 'Online payment is not connected yet.' };
   }
   try {
     const res = await fetch(CHECKOUT_ENDPOINT, {
