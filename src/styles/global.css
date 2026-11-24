@@ -253,6 +253,24 @@ em {
   align-items: center;
 }
 
+/* ───────────────────────── scroll progress ───────────────────────── */
+.progress {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 50; /* above the nav bar, below the bag drawer */
+  height: 3px;
+  pointer-events: none;
+}
+
+.progress__bar {
+  height: 100%;
+  background: linear-gradient(90deg, #a8401a, var(--accent) 60%, #ff7a3d);
+  box-shadow: 0 0 10px rgba(210, 89, 31, 0.6);
+  transform: scaleX(0);
+  transform-origin: left;
+  will-change: transform;
+}
+
 /* ───────────────────────── nav ───────────────────────── */
 .nav {
   position: fixed;
