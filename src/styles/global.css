@@ -300,9 +300,6 @@ em {
   background: rgba(236, 231, 221, 0.1);
 }
 
-.nav.is-dark .nav__count:not(.is-on) {
-  background: rgba(236, 231, 221, 0.14);
-}
 
 .nav__row {
   height: 100%;
@@ -358,44 +355,53 @@ em {
 }
 
 .nav__bag {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  padding: 0 14px;
-  border-radius: 999px;
-  font-size: 15px;
-  font-weight: 600;
-  transition: background-color 0.2s var(--ease), transform 0.2s var(--ease);
+  position: relative;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  transition:
+    background-color 0.2s var(--ease),
+    transform 0.2s var(--ease);
 }
 
 .nav__bag:hover {
-  background: rgb(var(--ink-rgb) / 0.06);
-}
-
-.nav__bag:active {
-  transform: scale(0.97);
-}
-
-.nav__bag svg {
-  width: 20px;
-  height: 20px;
-}
-
-.nav__count {
-  min-width: 22px;
-  height: 22px;
-  padding: 0 6px;
-  border-radius: 999px;
-  display: grid;
-  place-items: center;
-  font-size: 12px;
   background: rgb(var(--ink-rgb) / 0.08);
 }
 
-.nav__count.is-on {
+.nav__bag:active {
+  transform: scale(0.94);
+}
+
+.nav__bag svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* the number sits on the bag's top-right corner, only when there is something in it */
+.nav__count {
+  position: absolute;
+  top: 2px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
   background: var(--accent);
   color: #fff;
+  box-shadow: 0 0 0 2px var(--bg);
+  transform: scale(0);
+  transition: transform 0.3s var(--ease);
+}
+
+.nav__count.is-on {
+  transform: scale(1);
   animation: bump 0.45s var(--ease);
 }
 

@@ -72,8 +72,7 @@ export function Nav() {
               <path d="M5 8h14l-1.2 12H6.2L5 8Z" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
               <path d="M9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" strokeWidth="1.6" />
             </svg>
-            <span>Bag</span>
-            <span className={`nav__count ${count ? 'is-on' : ''}`} key={count}>
+            <span className={`nav__count ${count ? 'is-on' : ''}`} key={count} aria-hidden="true">
               {count}
             </span>
           </button>
