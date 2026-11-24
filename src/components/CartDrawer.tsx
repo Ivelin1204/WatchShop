@@ -1,16 +1,11 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useCart } from '../cart/CartContext';
-import { BRAND, MODEL, dialById, strapById } from '../data/product';
+import { BRAND, COUNTRIES, MODEL, dialById, strapById } from '../data/product';
 import { startCheckout, type ShippingDetails } from '../lib/checkout';
 import { money } from '../lib/format';
 import { Select } from './Select';
 import { WatchFace } from './watch/WatchFace';
 
-const COUNTRIES = [
-  'Austria', 'Belgium', 'Bulgaria', 'Croatia', 'Cyprus', 'Czechia', 'Denmark', 'Estonia', 'Finland', 'France',
-  'Germany', 'Greece', 'Hungary', 'Ireland', 'Italy', 'Latvia', 'Lithuania', 'Luxembourg', 'Malta', 'Netherlands',
-  'Norway', 'Poland', 'Portugal', 'Romania', 'Slovakia', 'Slovenia', 'Spain', 'Sweden', 'Switzerland', 'United Kingdom',
-];
 
 type Step = 'bag' | 'details';
 type Errors = Partial<Record<keyof ShippingDetails, string>>;

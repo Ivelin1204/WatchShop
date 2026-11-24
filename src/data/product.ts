@@ -100,6 +100,34 @@ export const FAQ: { q: string; a: string }[] = [
   },
 ];
 
+/**
+ * Where we ship, how many working days the courier takes and what it costs.
+ * Stand-in values: replace with the client's courier contract.
+ */
+export interface ShippingZone {
+  country: string;
+  days: [number, number];
+  fee: number;
+  /** outside the EU: duties are collected by the courier */
+  duties?: boolean;
+}
+
+const zone = (days: [number, number], fee = 0, duties = false) => (country: string): ShippingZone => ({ country, days, fee, duties });
+const home = zone([1, 2]);
+const near = zone([2, 3]);
+const eu = zone([2, 4]);
+const outside = zone([3, 5], 25, true);
+
+export const SHIPPING: ShippingZone[] = [
+  eu('Austria'), eu('Belgium'), home('Bulgaria'), eu('Croatia'), eu('Cyprus'), eu('Czechia'), eu('Denmark'), eu('Estonia'),
+  eu('Finland'), eu('France'), eu('Germany'), near('Greece'), eu('Hungary'), eu('Ireland'), eu('Italy'), eu('Latvia'),
+  eu('Lithuania'), eu('Luxembourg'), eu('Malta'), eu('Netherlands'), outside('Norway'), eu('Poland'), eu('Portugal'),
+  near('Romania'), eu('Slovakia'), eu('Slovenia'), eu('Spain'), eu('Sweden'), outside('Switzerland'), outside('United Kingdom'),
+];
+export const COUNTRIES = SHIPPING.map((z) => z.country);
+/** orders placed before this hour (Sofia time) leave the workshop the same working day */
+export const SHIP_CUTOFF_HOUR = 14;
+
 export const priceFor = (strap: StrapId) =>
   MODEL.basePrice + (STRAPS.find((s) => s.id === strap)?.surcharge ?? 0);
 

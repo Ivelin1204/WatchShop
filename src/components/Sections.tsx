@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { BRAND, DIALS, FAQ, MODEL, SPECS, priceFor, type DialId } from '../data/product';
+import { BRAND, DIALS, MODEL, SPECS, priceFor, type DialId } from '../data/product';
 import { DIAL_EVENT } from './Configurator';
 import { money } from '../lib/format';
 import { usePrefersReducedMotion } from './watch/useClock';
@@ -240,59 +240,6 @@ export function Movement() {
               <span>jewels at the points of wear</span>
             </li>
           </ul>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-export function Delivery() {
-  const [open, setOpen] = useState<number | null>(0);
-  return (
-    <section className="section delivery" id="delivery">
-      <div className="wrap delivery__grid">
-        <div>
-          <h2 className="h2">Delivery, returns and the warranty.</h2>
-          <ul className="promises">
-            <li>
-              <strong>Free delivery in the EU</strong>
-              <span>Insured, tracked and signed for. It arrives in {MODEL.shipping}.</span>
-            </li>
-            <li>
-              <strong>30 days to change your mind</strong>
-              <span>Send it back unworn in its box and we refund you in full.</span>
-            </li>
-            <li>
-              <strong>5 years on the movement</strong>
-              <span>If it stops keeping time, we service it at no cost.</span>
-            </li>
-          </ul>
-        </div>
-        <div className="faq">
-          {FAQ.map((f, i) => {
-            const isOpen = open === i;
-            return (
-              <div key={f.q} className={`faq__item ${isOpen ? 'is-open' : ''}`}>
-                <h3>
-                  <button
-                    className="faq__q"
-                    aria-expanded={isOpen}
-                    aria-controls={`faq-${i}`}
-                    id={`faq-q-${i}`}
-                    onClick={() => setOpen(isOpen ? null : i)}
-                  >
-                    {f.q}
-                    <span className="faq__icon" aria-hidden="true" />
-                  </button>
-                </h3>
-                <div className="faq__a" id={`faq-${i}`} role="region" aria-labelledby={`faq-q-${i}`}>
-                  <div>
-                    <p>{f.a}</p>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
         </div>
       </div>
     </section>
