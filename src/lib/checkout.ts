@@ -8,7 +8,8 @@ export interface ShippingDetails {
   country: string;
 }
 
-export type CheckoutResult = { ok: true; redirectUrl: string } | { ok: false; reason: string };
+export type CheckoutFailure = 'notConnected' | 'failed' | 'offline';
+export type CheckoutResult = { ok: true; redirectUrl: string } | { ok: false; reason: CheckoutFailure };
 
 /**
  * Payment integration point.
@@ -21,7 +22,7 @@ const CHECKOUT_ENDPOINT: string | null = import.meta.env.VITE_CHECKOUT_ENDPOINT 
 
 export async function startCheckout(items: CartItem[], shipping: ShippingDetails): Promise<CheckoutResult> {
   if (!CHECKOUT_ENDPOINT) {
-    return { ok: false, reason: 'Online payment is not connected yet.' };
+    return { ok: false, reason: 'notConnected' };
   }
   try {
     const res = await fetch(CHECKOUT_ENDPOINT, {
@@ -29,10 +30,10 @@ export async function startCheckout(items: CartItem[], shipping: ShippingDetails
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ items, shipping }),
     });
-    if (!res.ok) return { ok: false, reason: 'The payment page could not be opened. Please try again.' };
+    if (!res.ok) return { ok: false, reason: 'failed' };
     const data = (await res.json()) as { url?: string };
-    return data.url ? { ok: true, redirectUrl: data.url } : { ok: false, reason: 'The payment page could not be opened.' };
+    return data.url ? { ok: true, redirectUrl: data.url } : { ok: false, reason: 'failed' };
   } catch {
-    return { ok: false, reason: 'No connection. Check your internet and try again.' };
+    return { ok: false, reason: 'offline' };
   }
 }

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { BRAND, DIALS, MODEL, SPECS, priceFor, type DialId } from '../data/product';
+import { BRAND, DIALS, MODEL, priceFor, type DialId } from '../data/product';
+import { useI18n } from '../i18n';
 import { DIAL_EVENT } from './Configurator';
-import { money } from '../lib/format';
 import { usePrefersReducedMotion } from './watch/useClock';
 import { LogoMark } from './Logo';
 import { WatchBack } from './watch/WatchBack';
@@ -13,6 +13,7 @@ const readout = (ms: number) => `${pad((ms / 60000) % 30)}:${pad((ms / 1000) % 6
 
 /** A working chronograph: start, stop and reset it, and switch the lights off to see the lume. */
 export function Details() {
+  const { t } = useI18n();
   const hand = useRef<SVGGElement>(null);
   const counter = useRef<SVGGElement>(null);
   const timeRef = useRef<HTMLSpanElement>(null);
@@ -74,15 +75,12 @@ export function Details() {
             chronoCounterRef={counter}
             onPusher={press}
             className="details__dial"
-            title="Meridian Chronograph dial. The top pusher starts and stops the timer, the lower one resets it."
+            title={t.details.dialTitle}
           />
         </div>
         <div className="details__copy">
-          <h2 className="h2">A timer you can read at a glance, even in the dark.</h2>
-          <p className="lead">
-            Try it. The top pusher starts and stops the orange hand, the lower one sends it back to zero. Then switch
-            the lights off.
-          </p>
+          <h2 className="h2">{t.details.title}</h2>
+          <p className="lead">{t.details.lead}</p>
 
           <div className="chrono">
             <span className="chrono__time" ref={timeRef} aria-live="off">
@@ -90,22 +88,22 @@ export function Details() {
             </span>
             <div className="chrono__btns">
               <button className={`btn ${running ? 'btn--ghost' : 'btn--solid'}`} onClick={() => press('start')}>
-                {running ? 'Stop timer' : 'Start timer'}
+                {running ? t.details.stop : t.details.start}
               </button>
               <button className="btn btn--ghost" onClick={() => press('reset')} disabled={running}>
-                Reset
+                {t.details.reset}
               </button>
               <button className={`switch ${night ? 'is-on' : ''}`} role="switch" aria-checked={night} onClick={() => setNight((n) => !n)}>
                 <span className="switch__track" aria-hidden="true">
                   <span className="switch__thumb" />
                 </span>
-                Lights off
+                {t.details.lights}
               </button>
             </div>
           </div>
 
           <dl className="specs">
-            {SPECS.map((s) => (
+            {t.specs.map((s) => (
               <div key={s.label} className="specs__row">
                 <dt>{s.label}</dt>
                 <dd>{s.value}</dd>
@@ -118,14 +116,8 @@ export function Details() {
   );
 }
 
-const PARTS = [
-  { n: 1, title: 'Domed sapphire', body: 'Curved crystal, anti-reflective inside, 2.9 mm of the height.' },
-  { n: 2, title: 'Two pushers', body: 'Start and stop at 2 o’clock, reset at 4.' },
-  { n: 3, title: 'Screw-down crown', body: 'Engraved with the Merid mark, sealed to 100 m.' },
-  { n: 4, title: 'Display caseback', body: 'Sapphire window onto the movement, flush with the wrist.' },
-];
-
 export function Profile() {
+  const { t } = useI18n();
   const ref = useRef<HTMLElement>(null);
   const reduced = usePrefersReducedMotion();
   const [drawn, setDrawn] = useState(false);
@@ -155,31 +147,24 @@ export function Profile() {
     <section className={`section profile ${drawn ? 'is-drawn' : ''}`} id="case" ref={ref}>
       <div className="wrap">
         <div className="profile__head">
-          <h2 className="h2 profile__title">12.9&nbsp;mm from crystal to caseback.</h2>
-          <p className="lead">
-            Slim for a chronograph, so it slides under a shirt cuff. It weighs 138&nbsp;g on the bracelet, which tapers
-            from 20 to 16&nbsp;mm at the clasp.
-          </p>
+          <h2 className="h2 profile__title">{t.profile.title}</h2>
+          <p className="lead">{t.profile.lead}</p>
         </div>
         <div className="profile__stage">
           <WatchProfile className="profile__drawing" />
         </div>
         <p className="profile__dims-m">
-          <span>
-            <strong>12.9 mm</strong> thick
-          </span>
-          <span>
-            <strong>40 mm</strong> case
-          </span>
-          <span>
-            <strong>47 mm</strong> lug to lug
-          </span>
+          {[t.profile.thick, t.profile.case, t.profile.lugs].map(([big, small]) => (
+            <span key={small}>
+              <strong>{big}</strong> {small}
+            </span>
+          ))}
         </p>
         <ol className="parts">
-          {PARTS.map((p) => (
-            <li key={p.n}>
+          {t.profile.parts.map((p, i) => (
+            <li key={i}>
               <span className="parts__n" aria-hidden="true">
-                {p.n}
+                {i + 1}
               </span>
               <div>
                 <strong>{p.title}</strong>
@@ -194,6 +179,7 @@ export function Profile() {
 }
 
 export function Movement() {
+  const { t } = useI18n();
   const section = useRef<HTMLElement>(null);
   const reduced = usePrefersReducedMotion();
   const [started, setStarted] = useState(false);
@@ -221,24 +207,15 @@ export function Movement() {
           <WatchBack className="movement__back" />
         </div>
         <div className="movement__copy">
-          <h2 className="h2">A Swiss chronograph calibre you can watch through the back.</h2>
-          <p className="lead">
-            Turn the watch over and the movement is behind sapphire. The rotor swings as your wrist moves and
-            winds the spring, so it never needs a battery.
-          </p>
+          <h2 className="h2">{t.movement.title}</h2>
+          <p className="lead">{t.movement.lead}</p>
           <ul className="figures figures--dark">
-            <li>
-              <strong>28,800</strong>
-              <span>beats an hour, so the seconds hand sweeps</span>
-            </li>
-            <li>
-              <strong>42 h</strong>
-              <span>power reserve off the wrist</span>
-            </li>
-            <li>
-              <strong>27</strong>
-              <span>jewels at the points of wear</span>
-            </li>
+            {t.movement.figures.map((f) => (
+              <li key={f.text}>
+                <strong>{f.big}</strong>
+                <span>{f.text}</span>
+              </li>
+            ))}
           </ul>
         </div>
       </div>
@@ -248,6 +225,7 @@ export function Movement() {
 
 /** Closing lineup: all three dials side by side; choosing one preselects it in the builder. */
 export function Close() {
+  const { t } = useI18n();
   const choose = (dial: DialId) => {
     window.dispatchEvent(new CustomEvent<DialId>(DIAL_EVENT, { detail: dial }));
     document.getElementById('buy')?.scrollIntoView({ behavior: 'smooth' });
@@ -257,22 +235,19 @@ export function Close() {
     <section className="section lineup" id="order">
       <div className="wrap">
         <div className="lineup__head">
-          <h2 className="h2">Three dials. Pick yours.</h2>
-          <p className="lead">
-            From {money(MODEL.basePrice)} on leather or rubber, {money(priceFor('bracelet'))} on the steel bracelet.
-            Free delivery across the EU.
-          </p>
+          <h2 className="h2">{t.close.title}</h2>
+          <p className="lead">{t.close.lead(t.money(MODEL.basePrice), t.money(priceFor('bracelet')))}</p>
         </div>
         <ul className="lineup__row">
           {DIALS.map((d) => (
             <li key={d.id}>
               <button className="lineup__card" onClick={() => choose(d.id)}>
                 <span className="lineup__watch">
-                  <WatchFace dial={d.id} strap="bracelet" view="head" title={`Meridian Chronograph with ${d.name.toLowerCase()} dial`} />
+                  <WatchFace dial={d.id} strap="bracelet" view="head" title={t.watchTitle(t.dials[d.id], t.straps.bracelet.name)} />
                 </span>
-                <span className="lineup__name">{d.name}</span>
+                <span className="lineup__name">{t.dials[d.id]}</span>
                 <span className="lineup__cta">
-                  Choose {d.name}
+                  {t.close.choose(t.dials[d.id])}
                   <svg viewBox="0 0 16 16" aria-hidden="true">
                     <path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.6" />
                   </svg>
@@ -287,6 +262,7 @@ export function Close() {
 }
 
 export function Footer() {
+  const { t } = useI18n();
   return (
     <footer className="footer">
       <div className="wrap footer__grid">
@@ -295,39 +271,39 @@ export function Footer() {
             <LogoMark className="footer__mark" />
             {BRAND.name}
           </p>
-          <p>Automatic watches, made in small batches.</p>
+          <p>{t.footer.tagline}</p>
         </div>
         <div>
-          <p className="footer__h">Workshop</p>
+          <p className="footer__h">{t.footer.workshop}</p>
           <p>
-            {BRAND.street}, {BRAND.city}
+            {t.brand.street}, {t.brand.city}
           </p>
           <a className="link" href={`mailto:${BRAND.email}`}>
-            Write to us
+            {t.footer.write}
           </a>
         </div>
         <div>
-          <p className="footer__h">Shop</p>
+          <p className="footer__h">{t.footer.shop}</p>
           <a className="link" href="#buy">
-            The watch
+            {t.footer.watch}
           </a>
           <a className="link" href="#delivery">
-            Delivery and returns
+            {t.footer.returns}
           </a>
         </div>
         <div>
-          <p className="footer__h">Care</p>
+          <p className="footer__h">{t.footer.care}</p>
           <a className="link" href="#movement">
-            The movement
+            {t.footer.movement}
           </a>
           <a className="link" href="#delivery">
-            Warranty
+            {t.footer.warranty}
           </a>
         </div>
       </div>
       <div className="wrap footer__base">
         <span>© 2026 {BRAND.legal}</span>
-        <span>Prices include VAT · Product photos are AI-generated illustrations</span>
+        <span>{t.footer.base}</span>
       </div>
     </footer>
   );

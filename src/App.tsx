@@ -12,20 +12,26 @@ import { ScrollProgress } from './components/ScrollProgress';
 import { Delivery } from './components/Delivery';
 import { Close, Details, Footer, Movement, Profile } from './components/Sections';
 import { Workshop } from './components/Workshop';
+import { LangProvider, useI18n } from './i18n';
 import { useRoute } from './lib/route';
 import { useScrollReveal } from './lib/useScrollReveal';
 
 export default function App() {
   const route = useRoute();
-  return <CartProvider>{route === 'checkout' ? <CheckoutPage /> : <Shop />}</CartProvider>;
+  return (
+    <LangProvider>
+      <CartProvider>{route === 'checkout' ? <CheckoutPage /> : <Shop />}</CartProvider>
+    </LangProvider>
+  );
 }
 
 function Shop() {
   useScrollReveal();
+  const { t } = useI18n();
   return (
     <>
       <a className="skip" href="#main">
-        Skip to content
+        {t.common.skip}
       </a>
       <ScrollProgress />
       <Nav />

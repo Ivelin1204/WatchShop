@@ -2,32 +2,31 @@ import caseback from '../assets/photos/caseback.webp';
 import dials from '../assets/photos/dials.webp';
 import studio from '../assets/photos/studio.webp';
 import wrist from '../assets/photos/wrist.webp';
+import { useI18n } from '../i18n';
 
 const PHOTOS = [
-  { src: wrist, w: 1024, h: 1280, cls: 'wrist', alt: 'The Meridian with a slate dial on a tan leather strap, worn at a café table next to an espresso' },
-  { src: studio, w: 1536, h: 1024, cls: 'studio', alt: 'The Meridian on its steel bracelet, slate dial, three-quarter view on black' },
-  { src: caseback, w: 1024, h: 1024, cls: 'back', alt: 'The back of the Meridian: the movement behind sapphire and the words FOR MARIA 2026 engraved round the window' },
-  { src: dials, w: 1536, h: 1024, cls: 'dials', alt: 'Three Meridians side by side: slate dial on the bracelet, midnight on leather, bone on rubber' },
-];
+  { src: wrist, w: 1024, h: 1280, cls: 'wrist' },
+  { src: studio, w: 1536, h: 1024, cls: 'studio' },
+  { src: caseback, w: 1024, h: 1024, cls: 'back' },
+  { src: dials, w: 1536, h: 1024, cls: 'dials' },
+] as const;
 
 /** Photographs of the watch: worn, in the studio, from the back, and all three dials. */
 export function Gallery() {
+  const { t } = useI18n();
   return (
     <section className="section gallery" id="photos" aria-labelledby="photos-title">
       <div className="wrap">
         <div className="gallery__head">
           <h2 className="h2" id="photos-title">
-            Out in the world.
+            {t.gallery.title}
           </h2>
-          <p className="lead">
-            On a café table, under a coat sleeve, face down with a name on the back. One 40&nbsp;mm case, three dials,
-            three straps.
-          </p>
+          <p className="lead">{t.gallery.lead}</p>
         </div>
         <div className="gallery__grid">
           {PHOTOS.map((p) => (
             <figure key={p.cls} className={`shot shot--${p.cls}`}>
-              <img src={p.src} width={p.w} height={p.h} alt={p.alt} loading="lazy" decoding="async" />
+              <img src={p.src} width={p.w} height={p.h} alt={t.gallery.alts[p.cls]} loading="lazy" decoding="async" />
             </figure>
           ))}
         </div>

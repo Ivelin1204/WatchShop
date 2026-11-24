@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useI18n } from '../i18n';
 import { usePrefersReducedMotion } from './watch/useClock';
 
 const R = 22; // ring radius in the 52 x 52 button
@@ -6,6 +7,7 @@ const C = 2 * Math.PI * R;
 
 /** Round button, bottom right: appears after the hero, scrolls back to the top. The ring shows how far down the page you are. */
 export function BackToTop() {
+  const { t } = useI18n();
   const [show, setShow] = useState(false);
   const ring = useRef<SVGCircleElement>(null);
   const reduced = usePrefersReducedMotion();
@@ -67,7 +69,7 @@ export function BackToTop() {
   };
 
   return (
-    <button className={`totop ${show ? 'is-on' : ''}`} onClick={toTop} aria-label="Back to the top" tabIndex={show ? 0 : -1} aria-hidden={!show}>
+    <button className={`totop ${show ? 'is-on' : ''}`} onClick={toTop} aria-label={t.common.toTop} tabIndex={show ? 0 : -1} aria-hidden={!show}>
       <svg viewBox="0 0 52 52" aria-hidden="true">
         <circle cx="26" cy="26" r={R} fill="none" stroke="currentColor" strokeOpacity="0.14" strokeWidth="2" />
         <circle

@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useI18n } from '../../i18n';
 import { useSvgId } from './useClock';
 
 /* ───────────────────────── geometry helpers ───────────────────────── */
@@ -113,6 +114,7 @@ function Wheel({ x, y, r, teeth, spokes = 4, id, turn = 0 }: { x: number; y: num
  */
 export function WatchBack({ className }: { className?: string }) {
   const id = useSvgId('b');
+  const { t } = useI18n();
   const caseScrews = useMemo(() => Array.from({ length: 6 }, (_, i) => pt(C, C, 146, (i * Math.PI) / 3 + Math.PI / 6)), []);
   const columnWheel = useMemo(() => {
     // seven columns round a castellated wheel
@@ -151,7 +153,7 @@ export function WatchBack({ className }: { className?: string }) {
   const trainBridge = 'M 172,246 L 206,232 Q 232,226 250,238 L 262,278 Q 246,306 214,314 Q 184,318 166,302 L 160,286 Z';
 
   return (
-    <svg className={className} viewBox="0 0 400 400" role="img" aria-label="Sapphire caseback showing the decorated automatic chronograph movement">
+    <svg className={className} viewBox="0 0 400 400" role="img" aria-label={t.common.caseback}>
       <defs>
         {/* case steel */}
         <linearGradient id={`${id}-case`} x1="0" y1="0" x2="1" y2="1">

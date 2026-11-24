@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useCart } from '../cart/CartContext';
-import { DIALS, MODEL, SIZES, STRAPS, dialById, priceFor, strapById, type DialId, type SizeId, type StrapId } from '../data/product';
-import { money } from '../lib/format';
-import { deliveryWindow, shortDate } from '../lib/shipping';
+import { DIALS, SIZES, STRAPS, dialById, priceFor, strapById, type DialId, type SizeId, type StrapId } from '../data/product';
+import { useI18n } from '../i18n';
+import { deliveryWindow } from '../lib/shipping';
 import { ConfigWatch3D, type View } from './ConfigWatch3D';
 
 /** Other sections can preselect a dial in the builder by dispatching this event. */
@@ -18,6 +18,10 @@ export function Configurator() {
   const eta = deliveryWindow('Bulgaria');
   const etaEU = deliveryWindow('Germany');
   const { add, setOpen } = useCart();
+  const { t } = useI18n();
+  const money = t.money;
+  const dialName = t.dials[dialById(dial).id];
+  const strapName = t.straps[strapById(strap).id].name;
 
   const price = priceFor(strap);
 
@@ -44,12 +48,12 @@ export function Configurator() {
             engraving={engraving}
             view={view}
             onView={setView}
-            title={`${MODEL.name} with ${dialById(dial).name.toLowerCase()} dial on ${strapById(strap).name.toLowerCase()}`}
+            title={t.watchTitle(dialName, strapName)}
           />
-          <div className="views" role="group" aria-label="Turn the watch">
+          <div className="views" role="group" aria-label={t.config.turn}>
             {(['front', 'side', 'back'] as View[]).map((v) => (
               <button key={v} className={view === v ? 'is-on' : ''} aria-pressed={view === v} onClick={() => setView(v)}>
-                {v[0].toUpperCase() + v.slice(1)}
+                {t.config.views[v]}
               </button>
             ))}
           </div>
@@ -57,27 +61,27 @@ export function Configurator() {
             <svg viewBox="0 0 24 24">
               <path d="M7 12h10M7 12l3-3M7 12l3 3M17 12l-3-3M17 12l-3 3" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            Drag to turn
+            {t.config.drag}
           </p>
         </div>
 
         <div className="config__panel">
-          <h2 className="h2">Choose your Meridian.</h2>
+          <h2 className="h2">{t.config.title}</h2>
           <p className="config__price" aria-live="polite">
             {money(price)}
-            <span>incl. VAT · ships in {MODEL.shipping}</span>
+            <span>{t.config.priceNote}</span>
           </p>
 
           <fieldset className="opt">
             <legend>
-              Dial <span>{dialById(dial).name}</span>
+              {t.config.dial} <span>{dialName}</span>
             </legend>
             <div className="swatches">
               {DIALS.map((d) => (
-                <label key={d.id} className="swatch" title={d.name}>
+                <label key={d.id} className="swatch" title={t.dials[d.id]}>
                   <input type="radio" name="dial" value={d.id} checked={dial === d.id} onChange={() => setDial(d.id)} />
                   <span className="swatch__dot" style={{ background: `radial-gradient(circle at 35% 30%, ${d.glow}, ${d.swatch})` }} />
-                  <span className="sr-only">{d.name} dial</span>
+                  <span className="sr-only">{t.dialLabel(t.dials[d.id])}</span>
                 </label>
               ))}
             </div>
@@ -85,14 +89,14 @@ export function Configurator() {
 
           <fieldset className="opt">
             <legend>
-              Strap <span>{strapById(strap).name}</span>
+              {t.config.strap} <span>{strapName}</span>
             </legend>
             <div className="segs">
               {STRAPS.map((s) => (
                 <label key={s.id} className="seg">
                   <input type="radio" name="strap" value={s.id} checked={strap === s.id} onChange={() => setStrap(s.id)} />
                   <span>
-                    {s.short}
+                    {t.straps[s.id].short}
                     {s.surcharge > 0 && <small>+{money(s.surcharge)}</small>}
                   </span>
                 </label>
@@ -103,7 +107,7 @@ export function Configurator() {
           {SIZES.length > 1 && (
           <fieldset className="opt">
             <legend>
-              Case <span>{size} mm</span>
+              {t.config.case} <span>{size} {t.units.mm}</span>
             </legend>
             <div className="segs segs--two">
               {SIZES.map((s) => (
@@ -120,14 +124,14 @@ export function Configurator() {
 
           <div className="opt engrave">
             <label htmlFor="engraving" className="engrave__label">
-              Engraving <span>optional, free</span>
+              {t.config.engraving} <span>{t.config.engravingTag}</span>
             </label>
             <div className="engrave__field">
               <input
                 id="engraving"
                 type="text"
                 maxLength={24}
-                placeholder="Initials or a date, e.g. A.P. 24.11.2026"
+                placeholder={t.config.placeholder}
                 value={engraving}
                 onChange={(e) => setEngraving(e.target.value.replace(/[^\p{L}\p{N} .,&'·\-/]/gu, ''))}
                 onFocus={() => setView('back')}
@@ -138,22 +142,20 @@ export function Configurator() {
               </span>
             </div>
             <p id="engraving-help" className="engrave__help">
-              Cut into the caseback around the window. Engraved watches can’t be returned.
+              {t.config.engravingHelp}
             </p>
           </div>
 
           <button className={`btn btn--solid btn--wide ${added ? 'is-done' : ''}`} onClick={onAdd}>
-            <span className="btn__label">{added ? 'Added to your bag' : `Add to bag — ${money(price)}`}</span>
+            <span className="btn__label">{added ? t.config.added : t.config.add(money(price))}</span>
           </button>
           <p className="config__eta">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M3 6h11v9H3z M14 9h4l3 3v3h-7 M6.5 18a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z M17.5 18a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
             </svg>
-            <span>
-              Order today, it arrives by <strong>{shortDate.format(eta.latest)}</strong> in Bulgaria, by {shortDate.format(etaEU.latest)} across the EU.
-            </span>
+            <span>{t.config.eta(t.shortDate(eta.latest), t.shortDate(etaEU.latest))}</span>
           </p>
-          <p className="config__note">{engraving.trim() ? 'Free delivery across the EU.' : '30 days to return it unworn. Free delivery across the EU.'}</p>
+          <p className="config__note">{engraving.trim() ? t.config.noteEngraved : t.config.note}</p>
         </div>
       </div>
     </section>

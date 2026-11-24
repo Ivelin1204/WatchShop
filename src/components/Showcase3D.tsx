@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { DIALS, dialById, type DialId } from '../data/product';
+import { useI18n } from '../i18n';
 import { movementImage } from '../three/movementImage';
 import type { WatchScene } from '../three/watchScene';
 import { WatchBack } from './watch/WatchBack';
@@ -11,24 +12,6 @@ import { usePrefersReducedMotion } from './watch/useClock';
  * the screen, and scroll progress turns the watch through four views.
  */
 
-const STEPS = [
-  {
-    title: 'Two counters and a timer you read at a glance.',
-    body: 'Running seconds sit at 9, the 30-minute counter at 3. The orange hand rests at 12 until you start the timer.',
-  },
-  {
-    title: 'Start, stop, reset.',
-    body: 'The top pusher starts and stops the timer, the lower one sends it back to zero. The crown between them screws down to 100 m.',
-  },
-  {
-    title: 'The chronograph calibre, on show through the back.',
-    body: 'A sapphire caseback shows the rotor that winds the spring every time your wrist moves.',
-  },
-  {
-    title: 'A steel bracelet with polished centre links.',
-    body: 'Solid links taper from 20 to 16 mm and wrap close round the wrist, so the watch sits flat and stays put.',
-  },
-];
 
 // where each view rests in the scroll (0-1), and how long it holds there
 const STOPS = [0.05, 0.36, 0.66, 0.95];
@@ -60,6 +43,7 @@ const stepFor = (p: number) => {
 };
 
 export function Showcase3D() {
+  const { t } = useI18n();
   const section = useRef<HTMLElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const backSvg = useRef<HTMLDivElement>(null);
@@ -157,22 +141,22 @@ export function Showcase3D() {
         <div className="wrap showcase__grid">
           <div className="showcase__copy">
             <h2 className="eyebrow" id="showcase-title">
-              Turn it over
+              {t.showcase.eyebrow}
             </h2>
             <div className="showcase__steps" aria-live="polite">
-              {STEPS.map((s, i) => (
-                <div key={s.title} className={`showcase__step ${i === step ? 'is-on' : ''}`} aria-hidden={i !== step}>
+              {t.showcase.steps.map((s, i) => (
+                <div key={i} className={`showcase__step ${i === step ? 'is-on' : ''}`} aria-hidden={i !== step}>
                   <p className="showcase__title">{s.title}</p>
                   <p className="showcase__body">{s.body}</p>
                 </div>
               ))}
             </div>
-            <div className="showcase__dots" role="group" aria-label="Views of the watch">
-              {STEPS.map((s, i) => (
+            <div className="showcase__dots" role="group" aria-label={t.showcase.views}>
+              {t.showcase.steps.map((_, i) => (
                 <button
-                  key={s.title}
+                  key={i}
                   className={i === step ? 'is-on' : ''}
-                  aria-label={['Dial', 'Crown and pushers', 'Caseback', 'Bracelet side'][i]}
+                  aria-label={t.showcase.dots[i]}
                   aria-pressed={i === step}
                   onClick={() => goTo(i)}
                 >
@@ -186,15 +170,15 @@ export function Showcase3D() {
             {failed ? (
               <WatchFace dial={dial} strap="bracelet" view="full" className="showcase__fallback" />
             ) : (
-              <canvas ref={canvas} className={`showcase__canvas ${ready ? 'is-ready' : ''}`} role="img" aria-label={`3D model of the Meridian Chronograph with ${dialById(dial).name.toLowerCase()} dial, turning as you scroll`} />
+              <canvas ref={canvas} className={`showcase__canvas ${ready ? 'is-ready' : ''}`} role="img" aria-label={t.showcase.canvas(t.dials[dialById(dial).id])} />
             )}
-            <div className="showcase__swatches" role="radiogroup" aria-label="Dial colour">
+            <div className="showcase__swatches" role="radiogroup" aria-label={t.showcase.dialColour}>
               {DIALS.map((d) => (
                 <button
                   key={d.id}
                   role="radio"
                   aria-checked={dial === d.id}
-                  aria-label={`${d.name} dial`}
+                  aria-label={t.dialLabel(t.dials[d.id])}
                   className={`swatch swatch--btn ${dial === d.id ? 'is-on' : ''}`}
                   onClick={() => setDial(d.id)}
                 >

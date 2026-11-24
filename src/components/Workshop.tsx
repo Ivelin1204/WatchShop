@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { BRAND, dialById } from '../data/product';
+import { dialById } from '../data/product';
+import { useI18n } from '../i18n';
 import { movementImage } from '../three/movementImage';
 import type { WatchScene } from '../three/watchScene';
 import { WatchBack } from './watch/WatchBack';
@@ -12,23 +13,18 @@ import { usePrefersReducedMotion } from './watch/useClock';
  * timing-machine trace streams its ticks between the pass limits.
  */
 
-const STATEMENT =
-  'Every Meridian is assembled and regulated by hand in our workshop in Sofia, then timed for five days in five positions.';
-
 interface Day {
-  name: string;
-  note: string;
   pose: { turn: number; tilt: number; roll: number };
   /** slope of the trace in this position, for the timing-machine drawing */
   drift: number;
 }
 
 const DAYS: Day[] = [
-  { name: 'Dial up', note: 'Lying flat, as on a bedside table.', pose: { turn: -0.35, tilt: -1.0, roll: 0 }, drift: 0.16 },
-  { name: 'Dial down', note: 'Face down on its crystal, clasp up.', pose: { turn: Math.PI + 0.3, tilt: -0.45, roll: 0 }, drift: -0.1 },
-  { name: 'Crown up', note: 'Standing on its side, crown to the sky.', pose: { turn: -0.45, tilt: 0.15, roll: Math.PI / 2 }, drift: 0.26 },
-  { name: 'Crown down', note: 'As it hangs on a resting arm.', pose: { turn: -0.45, tilt: 0.15, roll: -Math.PI / 2 }, drift: -0.2 },
-  { name: 'Crown left', note: 'As it sits on a raised wrist.', pose: { turn: 0.45, tilt: 0.15, roll: Math.PI }, drift: 0.06 },
+  { pose: { turn: -0.35, tilt: -1.0, roll: 0 }, drift: 0.16 },
+  { pose: { turn: Math.PI + 0.3, tilt: -0.45, roll: 0 }, drift: -0.1 },
+  { pose: { turn: -0.45, tilt: 0.15, roll: Math.PI / 2 }, drift: 0.26 },
+  { pose: { turn: -0.45, tilt: 0.15, roll: -Math.PI / 2 }, drift: -0.2 },
+  { pose: { turn: 0.45, tilt: 0.15, roll: Math.PI }, drift: 0.06 },
 ];
 
 const WORDS_END = 0.18; // share of the scroll spent filling in the sentence
@@ -37,7 +33,8 @@ const DAYS_END = 0.94; // the last day finishes here
 export function Workshop() {
   const ref = useRef<HTMLElement>(null);
   const reduced = usePrefersReducedMotion();
-  const words = STATEMENT.split(' ');
+  const { t } = useI18n();
+  const words = t.workshop.statement.split(' ');
   const [p, setP] = useState(reduced ? 1 : 0);
 
   useEffect(() => {
@@ -78,9 +75,9 @@ export function Workshop() {
         <div className="wrap workshop__grid">
           <div className="workshop__copy">
             <h2 className="eyebrow" id="workshop-title">
-              The workshop on {BRAND.street}
+              {t.workshop.eyebrow(t.brand.street)}
             </h2>
-            <p className="workshop__text" aria-label={STATEMENT}>
+            <p className="workshop__text" aria-label={t.workshop.statement}>
               {words.map((w, i) => (
                 <span key={i} aria-hidden="true" className={i < lit ? 'is-lit' : ''}>
                   {w}{' '}
@@ -89,17 +86,17 @@ export function Workshop() {
             </p>
 
             <ol className="steps">
-              {DAYS.map((d, i) => {
+              {DAYS.map((_, i) => {
                 const state = done || i < active ? 'is-done' : i === active && dayP > 0 ? 'is-now' : '';
                 return (
-                  <li key={d.name} className={state}>
+                  <li key={i} className={state}>
                     <span className="steps__mark" aria-hidden="true">
                       <svg viewBox="0 0 16 16">
                         <path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     </span>
-                    <span className="steps__day">Day {i + 1}</span>
-                    <span className="steps__name">{d.name}</span>
+                    <span className="steps__day">{t.workshop.day(i + 1)}</span>
+                    <span className="steps__name">{t.workshop.days[i].name}</span>
                     <span className="steps__bar" aria-hidden="true">
                       <span style={{ transform: `scaleX(${state === 'is-done' ? 1 : state === 'is-now' ? within : 0})` }} />
                     </span>
@@ -108,9 +105,7 @@ export function Workshop() {
               })}
             </ol>
 
-            <p className={`workshop__result ${done ? 'is-on' : ''}`}>
-              <strong>Within −4 and +6 seconds a day</strong> in every position, or it goes back on the bench.
-            </p>
+            <p className={`workshop__result ${done ? 'is-on' : ''}`}>{t.workshop.result}</p>
           </div>
 
           <Bench day={active} started={dayP > 0} done={done} reduced={reduced} />
@@ -121,6 +116,8 @@ export function Workshop() {
 }
 
 function Bench({ day, started, done, reduced }: { day: number; started: boolean; done: boolean; reduced: boolean }) {
+  const { t } = useI18n();
+  const words_ = t.workshop;
   const canvas = useRef<HTMLCanvasElement>(null);
   const backSvg = useRef<HTMLDivElement>(null);
   const scene = useRef<WatchScene | null>(null);
@@ -177,12 +174,12 @@ function Bench({ day, started, done, reduced }: { day: number; started: boolean;
         {failed ? (
           <WatchFace dial="slate" strap="bracelet" view="head" className="bench__fallback" />
         ) : (
-          <canvas ref={canvas} className={`bench__canvas ${ready ? 'is-ready' : ''}`} role="img" aria-label={`The watch in the ${current.name.toLowerCase()} position`} />
+          <canvas ref={canvas} className={`bench__canvas ${ready ? 'is-ready' : ''}`} role="img" aria-label={t.workshop.position(words_.days[day].name)} />
         )}
         <div className="bench__tag" aria-live="polite">
           <span className={`bench__led ${started && !done ? 'is-on' : ''}`} aria-hidden="true" />
-          {done ? 'Passed in all five positions' : `Day ${day + 1} · ${current.name}`}
-          <span className="bench__note">{done ? 'Ready to ship' : current.note}</span>
+          {done ? words_.passed : `${words_.day(day + 1)} · ${words_.days[day].name}`}
+          <span className="bench__note">{done ? words_.ready : words_.days[day].note}</span>
         </div>
       </div>
       <Trace drift={current.drift} running={started && !done} reduced={reduced} />
@@ -195,6 +192,7 @@ function Bench({ day, started, done, reduced }: { day: number; started: boolean;
 
 /** Timing-machine trace: two rows of tick and tock marks scrolling left between the pass limits. */
 function Trace({ drift, running, reduced }: { drift: number; running: boolean; reduced: boolean }) {
+  const { t } = useI18n();
   const ref = useRef<HTMLCanvasElement>(null);
   const driftRef = useRef(drift);
   driftRef.current = drift;
@@ -311,7 +309,7 @@ function Trace({ drift, running, reduced }: { drift: number; running: boolean; r
 
   return (
     <div className="trace">
-      <span className="trace__label">Timing machine</span>
+      <span className="trace__label">{t.workshop.machine}</span>
       <canvas ref={ref} className="trace__canvas" aria-hidden="true" />
     </div>
   );

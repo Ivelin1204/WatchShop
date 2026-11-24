@@ -6,10 +6,13 @@ interface Props {
   options: string[];
   onChange: (v: string) => void;
   error?: string;
+  /** how a value is shown (e.g. a country key in the visitor's language) */
+  format?: (v: string) => string;
+  placeholder?: string;
 }
 
 /** Custom listbox with full keyboard support (arrows, Home/End, type-ahead, Esc). */
-export function Select({ label, value, options, onChange, error }: Props) {
+export function Select({ label, value, options, onChange, error, format = (v) => v, placeholder = 'Choose…' }: Props) {
   const uid = useId();
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(Math.max(0, options.indexOf(value)));
@@ -52,7 +55,7 @@ export function Select({ label, value, options, onChange, error }: Props) {
       const now = Date.now();
       typed.current.text = (now - typed.current.t > 600 ? '' : typed.current.text) + e.key.toLowerCase();
       typed.current.t = now;
-      const i = options.findIndex((o) => o.toLowerCase().startsWith(typed.current.text));
+      const i = options.findIndex((o) => format(o).toLowerCase().startsWith(typed.current.text));
       if (i >= 0) setActive(i);
     } else return;
     e.preventDefault();
@@ -81,7 +84,7 @@ export function Select({ label, value, options, onChange, error }: Props) {
           }
         }}
       >
-        <span id={`${uid}-v`}>{value || 'Choose…'}</span>
+        <span id={`${uid}-v`}>{value ? format(value) : placeholder}</span>
         <svg viewBox="0 0 12 8" aria-hidden="true">
           <path d="M1 1.5 6 6.5l5-5" fill="none" stroke="currentColor" strokeWidth="1.5" />
         </svg>
@@ -107,7 +110,7 @@ export function Select({ label, value, options, onChange, error }: Props) {
               onMouseEnter={() => setActive(i)}
               onClick={() => choose(i)}
             >
-              {o}
+              {format(o)}
             </li>
           ))}
         </ul>

@@ -1,13 +1,15 @@
 import { useEffect, useRef } from 'react';
 import { useCart } from '../cart/CartContext';
 import { MODEL, dialById, strapById } from '../data/product';
-import { money } from '../lib/format';
+import { useI18n } from '../i18n';
 import { goTo } from '../lib/route';
 import { WatchFace } from './watch/WatchFace';
 
 
 export function CartDrawer() {
   const { items, subtotal, open, setOpen, setQty, remove } = useCart();
+  const { t } = useI18n();
+  const money = t.money;
   const panel = useRef<HTMLDivElement>(null);
   const lastFocus = useRef<HTMLElement | null>(null);
 
@@ -52,8 +54,8 @@ export function CartDrawer() {
       <div className="drawer__scrim" onClick={() => setOpen(false)} />
       <div ref={panel} className="drawer__panel" role="dialog" aria-modal="true" aria-labelledby="drawer-title" tabIndex={-1} data-autofocus>
         <div className="drawer__head">
-          <h2 id="drawer-title">Your bag</h2>
-          <button className="icon-btn" onClick={() => setOpen(false)} aria-label="Close bag">
+          <h2 id="drawer-title">{t.cart.title}</h2>
+          <button className="icon-btn" onClick={() => setOpen(false)} aria-label={t.cart.close}>
             <svg viewBox="0 0 16 16" aria-hidden="true">
               <path d="M3 3l10 10M13 3 3 13" stroke="currentColor" strokeWidth="1.6" />
             </svg>
@@ -62,9 +64,9 @@ export function CartDrawer() {
 
         {items.length === 0 ? (
               <div className="drawer__empty">
-                <p>Your bag is empty.</p>
+                <p>{t.cart.empty}</p>
                 <a className="btn btn--ghost" href="#buy" onClick={() => setOpen(false)}>
-                  Choose a watch
+                  {t.common.chooseWatch}
                 </a>
               </div>
             ) : (
@@ -72,20 +74,20 @@ export function CartDrawer() {
                 {items.map((i) => (
                   <li key={i.key} className="line">
                     <div className="line__thumb">
-                      <WatchFace dial={i.dial} strap={i.strap} size={i.size} view="head" live={false} title={`${dialById(i.dial).name} dial`} />
+                      <WatchFace dial={i.dial} strap={i.strap} size={i.size} view="head" live={false} title={t.dialLabel(t.dials[dialById(i.dial).id])} />
                     </div>
                     <div className="line__info">
                       <p className="line__name">
-                        {MODEL.short} · {dialById(i.dial).name}
+                        {MODEL.short} · {t.dials[dialById(i.dial).id]}
                       </p>
-                      <p className="line__meta">{strapById(i.strap).name}</p>
-                      {i.engraving && <p className="line__meta line__engr">Engraved: “{i.engraving}”</p>}
+                      <p className="line__meta">{t.straps[strapById(i.strap).id].name}</p>
+                      {i.engraving && <p className="line__meta line__engr">{t.common.engraved(i.engraving)}</p>}
                       <div className="qty">
-                        <button onClick={() => setQty(i.key, i.qty - 1)} aria-label={`One fewer ${dialById(i.dial).name} ${MODEL.short}`}>
+                        <button onClick={() => setQty(i.key, i.qty - 1)} aria-label={t.common.fewer(`${MODEL.short} ${t.dials[dialById(i.dial).id]}`)}>
                           −
                         </button>
                         <span aria-live="polite">{i.qty}</span>
-                        <button onClick={() => setQty(i.key, i.qty + 1)} aria-label={`One more ${dialById(i.dial).name} ${MODEL.short}`} disabled={i.qty >= 5}>
+                        <button onClick={() => setQty(i.key, i.qty + 1)} aria-label={t.common.more(`${MODEL.short} ${t.dials[dialById(i.dial).id]}`)} disabled={i.qty >= 5}>
                           +
                         </button>
                       </div>
@@ -93,7 +95,7 @@ export function CartDrawer() {
                     <div className="line__end">
                       <p>{money(i.unitPrice * i.qty)}</p>
                       <button className="link link--small" onClick={() => remove(i.key)}>
-                        Remove
+                        {t.common.remove}
                       </button>
                     </div>
                   </li>
@@ -104,15 +106,15 @@ export function CartDrawer() {
         {items.length > 0 && (
           <div className="drawer__foot">
             <div className="sum">
-              <span>Subtotal</span>
+              <span>{t.common.subtotal}</span>
               <strong>{money(subtotal)}</strong>
             </div>
             <div className="sum sum--muted">
-              <span>Delivery</span>
-              <span>Worked out at the next step</span>
+              <span>{t.common.delivery}</span>
+              <span>{t.cart.later}</span>
             </div>
             <button className="btn btn--solid btn--wide" onClick={checkout}>
-              Continue to delivery
+              {t.cart.next}
             </button>
           </div>
         )}

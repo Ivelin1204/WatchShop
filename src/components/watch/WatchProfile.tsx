@@ -1,3 +1,4 @@
+import { useI18n } from '../../i18n';
 import { useSvgId } from './useClock';
 
 /**
@@ -23,10 +24,13 @@ const MID = (BAND_TOP + BAND_BOT) / 2;
 
 export function WatchProfile({ className }: { className?: string }) {
   const id = useSvgId('p');
+  const { t } = useI18n();
+  // label backgrounds sized to the words, which are longer in Bulgarian
+  const pill = (text: string) => text.length * 11.6 + 26;
   const steel = `url(#${id}-band)`;
 
   return (
-    <svg className={className} viewBox="0 0 1000 440" role="img" aria-label="Technical drawing of the Meridian Chronograph from the crown side: 12.9 mm thick, 40 mm case, 47 mm lug to lug">
+    <svg className={className} viewBox="0 0 1000 440" role="img" aria-label={t.profile.drawing}>
       <defs>
         <linearGradient id={`${id}-band`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#F4F4F2" />
@@ -153,12 +157,12 @@ export function WatchProfile({ className }: { className?: string }) {
       </g>
 
       <g className="prof__labels" fill="currentColor" fontFamily="Manrope Variable, Manrope, sans-serif">
-        <text x="904" y={(TOP + BASE) / 2 - 4} fontSize="26" fontWeight="500" letterSpacing="-0.5">12.9</text>
-        <text x="904" y={(TOP + BASE) / 2 + 18} fontSize="14" fillOpacity="0.6">mm thick</text>
-        <rect x={CX - 70} y="62" width="140" height="34" fill="var(--surface)" />
-        <text x={CX} y="87" textAnchor="middle" fontSize="22" fontWeight="500">40 mm case</text>
-        <rect x={CX - 92} y="375" width="184" height="34" fill="var(--surface)" />
-        <text x={CX} y="400" textAnchor="middle" fontSize="22" fontWeight="500">47 mm lug to lug</text>
+        <text x="904" y={(TOP + BASE) / 2 - 4} fontSize="26" fontWeight="500" letterSpacing="-0.5">{t.profile.decimal}</text>
+        <text x="904" y={(TOP + BASE) / 2 + 18} fontSize="14" fillOpacity="0.6">{t.profile.drawThick}</text>
+        <rect x={CX - pill(t.profile.drawCase) / 2} y="62" width={pill(t.profile.drawCase)} height="34" fill="var(--surface)" />
+        <text x={CX} y="87" textAnchor="middle" fontSize="22" fontWeight="500">{t.profile.drawCase}</text>
+        <rect x={CX - pill(t.profile.drawLugs) / 2} y="375" width={pill(t.profile.drawLugs)} height="34" fill="var(--surface)" />
+        <text x={CX} y="400" textAnchor="middle" fontSize="22" fontWeight="500">{t.profile.drawLugs}</text>
       </g>
 
       {/* numbered part markers */}

@@ -1,17 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useCart } from '../cart/CartContext';
 import { BRAND } from '../data/product';
+import { useI18n } from '../i18n';
+import { LangSwitch } from './LangSwitch';
 import { LogoMark } from './Logo';
 
-const LINKS = [
-  { href: '#buy', label: 'The watch' },
-  { href: '#details', label: 'Details' },
-  { href: '#movement', label: 'Movement' },
-  { href: '#delivery', label: 'Delivery' },
-];
+const HREFS = ['#buy', '#details', '#movement', '#delivery'];
 
 export function Nav() {
   const { count, setOpen } = useCart();
+  const { t } = useI18n();
+  const LINKS = HREFS.map((href, i) => ({ href, label: t.nav.links[i] }));
   const [scrolled, setScrolled] = useState(false);
   const [dark, setDark] = useState(false);
   const [menu, setMenu] = useState(false);
@@ -39,11 +38,11 @@ export function Nav() {
     if (!menu) return;
     // mark the section that fills the middle of the screen right now
     const mid = window.innerHeight / 2;
-    const hit = LINKS.find((l) => {
-      const r = document.querySelector(l.href)?.getBoundingClientRect();
+    const hit = HREFS.find((href) => {
+      const r = document.querySelector(href)?.getBoundingClientRect();
       return r && r.top <= mid && r.bottom >= mid;
     });
-    setActive(hit?.href ?? null);
+    setActive(hit ?? null);
     const esc = (e: KeyboardEvent) => e.key === 'Escape' && setMenu(false);
     window.addEventListener('keydown', esc);
     return () => window.removeEventListener('keydown', esc);
@@ -53,12 +52,12 @@ export function Nav() {
     <>
     <header className={`nav ${scrolled ? 'is-scrolled' : ''} ${dark && !menu ? 'is-dark' : ''} ${menu ? 'is-menu' : ''}`}>
       <div className="wrap nav__row">
-        <a className="nav__logo" href="#top" aria-label={`${BRAND.name}, back to top`} onClick={() => setMenu(false)}>
+        <a className="nav__logo" href="#top" aria-label={t.nav.home(BRAND.name)} onClick={() => setMenu(false)}>
           <LogoMark className="nav__mark" />
           <span>{BRAND.name}</span>
         </a>
 
-        <nav className="nav__links" aria-label="Main">
+        <nav className="nav__links" aria-label={t.nav.main}>
           {LINKS.map((l) => (
             <a key={l.href} href={l.href} className="link">
               {l.label}
@@ -67,7 +66,8 @@ export function Nav() {
         </nav>
 
         <div className="nav__end">
-          <button className="nav__bag" onClick={() => setOpen(true)} aria-label={`Open bag, ${count} ${count === 1 ? 'item' : 'items'}`}>
+          <LangSwitch />
+          <button className="nav__bag" onClick={() => setOpen(true)} aria-label={t.nav.bag(count)}>
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M5 8h14l-1.2 12H6.2L5 8Z" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
               <path d="M9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" strokeWidth="1.6" />
@@ -80,7 +80,7 @@ export function Nav() {
             className="nav__burger"
             aria-expanded={menu}
             aria-controls="mobile-menu"
-            aria-label={menu ? 'Close menu' : 'Open menu'}
+            aria-label={menu ? t.nav.closeMenu : t.nav.openMenu}
             onClick={() => setMenu((m) => !m)}
           >
             <span />
@@ -95,7 +95,7 @@ export function Nav() {
           gets backdrop-filter, which makes it the containing block for position: fixed
           children, so a panel inside it would be squeezed into the 72 px bar. */}
       <div id="mobile-menu" className={`mmenu ${menu ? 'is-open' : ''}`} aria-hidden={!menu} inert={!menu}>
-        <nav className="wrap mmenu__links" aria-label="Mobile">
+        <nav className="wrap mmenu__links" aria-label={t.nav.mobile}>
           {LINKS.map((l, i) => (
             <a
               key={l.href}
@@ -113,9 +113,7 @@ export function Nav() {
           ))}
         </nav>
         <div className="wrap mmenu__foot" style={{ transitionDelay: menu ? '340ms' : '0ms' }}>
-          <p>
-            Free EU delivery · 30-day returns · {BRAND.city}
-          </p>
+          <p>{t.nav.menuFoot}</p>
         </div>
       </div>
     </>

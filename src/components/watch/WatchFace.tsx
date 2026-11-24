@@ -1,5 +1,6 @@
 import { useMemo, useRef, type KeyboardEvent, type RefObject } from 'react';
 import { dialById, sizeById, type DialId, type SizeId, type StrapId } from '../../data/product';
+import { useI18n } from '../../i18n';
 import { useSvgId, useWatchHands } from './useClock';
 
 /**
@@ -49,6 +50,7 @@ const HOUR_MARKERS = [0, 1, 2, 4, 5, 7, 8, 10, 11]; // 3, 6 and 9 hold the count
 
 export function WatchFace({ dial: dialId, strap, size = '40', view = 'full', live = true, className, title, night = false, chronoHandRef, chronoCounterRef, onPusher }: Props) {
   const id = useSvgId('w');
+  const { t } = useI18n();
   const dial = dialById(dialId);
   const scale = sizeById(size).scale;
   const svgRef = useRef<SVGSVGElement>(null);
@@ -68,7 +70,7 @@ export function WatchFace({ dial: dialId, strap, size = '40', view = 'full', liv
       className={className}
       viewBox={VIEWBOX[view]}
       role="img"
-      aria-label={title ?? `Meridian Chronograph with ${dial.name.toLowerCase()} dial`}
+      aria-label={title ?? t.watchTitle(t.dials[dial.id])}
       preserveAspectRatio="xMidYMid meet"
       data-view={view}
     >
@@ -239,7 +241,7 @@ export function WatchFace({ dial: dialId, strap, size = '40', view = 'full', liv
             ? {
                 role: 'button',
                 tabIndex: 0,
-                'aria-label': which === 'start' ? 'Start or stop the chronograph' : 'Reset the chronograph',
+                'aria-label': which === 'start' ? t.common.startStop : t.common.reset,
                 className: 'pusher',
                 onClick: () => onPusher(which),
                 onKeyDown: (e: KeyboardEvent) => {

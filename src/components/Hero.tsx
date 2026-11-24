@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { BRAND, MODEL, dialById } from '../data/product';
-import { money } from '../lib/format';
+import { MODEL, dialById } from '../data/product';
+import { useI18n } from '../i18n';
 import { delay } from '../lib/style';
 import type { WatchScene } from '../three/watchScene';
 import { WatchFace } from './watch/WatchFace';
@@ -10,30 +10,31 @@ import { usePrefersReducedMotion } from './watch/useClock';
 const POSE = { turn: -0.52, tilt: 0.32 };
 
 export function Hero() {
+  const { t } = useI18n();
   return (
     <section className="hero" id="top" data-enter>
       <div className="wrap hero__grid">
         <div className="hero__copy">
           <h1 className="hero__title enter" style={delay(0)}>
-            <em>Every day,</em> <span>timed to the second.</span>
+            <em>{t.hero.lead1}</em> <span>{t.hero.lead2}</span>
           </h1>
           <p className="hero__lead enter" style={delay(100)}>
-            A Swiss automatic chronograph with two counters and a date, assembled on {BRAND.street}.
+            {t.hero.body(t.brand.street)}
           </p>
           <div className="hero__actions enter" style={delay(180)}>
             <a className="btn btn--solid" href="#buy">
-              Choose your Meridian
+              {t.hero.cta}
             </a>
             <a className="hero__more" href="#in-3d">
-              See it turn <span aria-hidden="true">→</span>
+              {t.hero.more} <span aria-hidden="true">→</span>
             </a>
           </div>
           <p className="hero__line enter" style={delay(260)}>
-            <span>40&nbsp;mm</span>
-            <span>100&nbsp;m</span>
-            <span>42&nbsp;h</span>
+            <span>40&nbsp;{t.units.mm}</span>
+            <span>100&nbsp;{t.units.m}</span>
+            <span>42&nbsp;{t.units.h}</span>
             <span>
-              from <strong>{money(MODEL.basePrice)}</strong>
+              {t.hero.from} <strong>{t.money(MODEL.basePrice)}</strong>
             </span>
           </p>
         </div>
@@ -46,7 +47,7 @@ export function Hero() {
 
       <a className="hero__cue enter" style={delay(600)} href="#in-3d">
         <span className="hero__cue-line" aria-hidden="true" />
-        Scroll to turn it over
+        {t.hero.cue}
       </a>
     </section>
   );
@@ -116,6 +117,7 @@ function SecondsRing() {
 
 /** The 3D model, spinning in on load and then resting in its pose. */
 function HeroWatch() {
+  const { t } = useI18n();
   const canvas = useRef<HTMLCanvasElement>(null);
   const reduced = usePrefersReducedMotion();
   const [ready, setReady] = useState(false);
@@ -158,14 +160,14 @@ function HeroWatch() {
   }, [reduced]);
 
   if (failed) {
-    return <WatchFace dial="midnight" strap="bracelet" view="full" className="hero__watch" title="Meridian Chronograph with midnight dial on the steel bracelet" />;
+    return <WatchFace dial="midnight" strap="bracelet" view="full" className="hero__watch" title={t.watchTitle(t.dials.midnight, t.straps.bracelet.name)} />;
   }
   return (
     <canvas
       ref={canvas}
       className={`hero__canvas ${ready ? 'is-ready' : ''}`}
       role="img"
-      aria-label="3D model of the Meridian Chronograph with midnight dial on the steel bracelet, showing the time now"
+      aria-label={t.hero.canvas}
     />
   );
 }

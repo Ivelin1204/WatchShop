@@ -72,33 +72,7 @@ export const STRAPS: Strap[] = [
 
 export const SIZES: Size[] = [{ id: '40', name: '40 mm', scale: 1 }];
 
-export const SPECS: { label: string; value: string }[] = [
-  { label: 'Movement', value: 'Swiss automatic chronograph' },
-  { label: 'Counters', value: 'Small seconds at 9, 30 minutes at 3' },
-  { label: 'Crystal', value: 'Domed sapphire, anti-reflective inside' },
-  { label: 'Date', value: 'At 6 o’clock, quick-set from the crown' },
-  { label: 'Case', value: '316L steel, brushed with polished bevels' },
-  { label: 'Water', value: '100 m, screw-down crown' },
-];
-
-export const FAQ: { q: string; a: string }[] = [
-  {
-    q: 'How do I use the chronograph?',
-    a: 'Press the top pusher to start the orange hand, press it again to stop. The lower pusher sends the hand and the 30-minute counter back to zero.',
-  },
-  {
-    q: 'Does it need a battery?',
-    a: 'No. The movement winds itself as you wear it. Left off the wrist it runs for about 42 hours; after that, give the crown twenty turns or wear it again.',
-  },
-  {
-    q: 'Can I size the bracelet myself?',
-    a: 'Links come out with a small screwdriver, and the clasp has five micro-adjust holes. Or send us your wrist size with the order and we size it before it ships.',
-  },
-  {
-    q: 'Do you ship outside the EU?',
-    a: 'We ship to the UK, Switzerland and Norway for a flat €25. Import duties are paid by the buyer and collected by the courier.',
-  },
-];
+// Specs, FAQ, and all customer-facing words live in src/i18n (en.tsx, bg.tsx).
 
 /**
  * Customer reviews. The entries below are SAMPLES so the section can be

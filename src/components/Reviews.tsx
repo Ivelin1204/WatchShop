@@ -1,10 +1,11 @@
 import { DIALS, REVIEWS, dialById, type Review } from '../data/product';
+import { useI18n } from '../i18n';
 
-const dateFmt = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 
 function Stars({ value, size = 18 }: { value: number; size?: number }) {
+  const { t } = useI18n();
   return (
-    <span className="stars" role="img" aria-label={`${value.toFixed(1).replace('.0', '')} out of 5 stars`} style={{ height: size }}>
+    <span className="stars" role="img" aria-label={t.reviews.stars(t.reviews.decimal(value).replace(/[.,]0$/, ''))} style={{ height: size }}>
       {Array.from({ length: 5 }, (_, i) => {
         const fill = Math.max(0, Math.min(1, value - i));
         return (
@@ -28,6 +29,7 @@ function Stars({ value, size = 18 }: { value: number; size?: number }) {
 
 /** Reviews: a rating summary and three cards. Sample entries are labelled as such. */
 export function Reviews() {
+  const { t } = useI18n();
   if (!REVIEWS.length) return null;
   const avg = REVIEWS.reduce((n, r) => n + r.rating, 0) / REVIEWS.length;
   const anySample = REVIEWS.some((r) => r.sample);
@@ -39,25 +41,25 @@ export function Reviews() {
         <div className="reviews__head">
           <div>
             <h2 className="h2" id="reviews-title">
-              What owners say.
+              {t.reviews.title}
             </h2>
             {anySample && (
               <p className="reviews__sample-note">
-                <span className="sample-tag">Sample</span>
-                These are placeholder reviews. Replace them with real customer reviews before going live.
+                <span className="sample-tag">{t.reviews.sample}</span>
+                {t.reviews.sampleNote}
               </p>
             )}
           </div>
 
           <div className="reviews__summary">
-            <p className="reviews__avg">{avg.toFixed(1)}</p>
+            <p className="reviews__avg">{t.reviews.decimal(avg)}</p>
             <div>
               <Stars value={avg} size={20} />
               <p className="reviews__count">
-                {REVIEWS.length} {REVIEWS.length === 1 ? 'review' : 'reviews'}
+                {t.reviews.count(REVIEWS.length)}
               </p>
             </div>
-            <ul className="reviews__bars" aria-label="Ratings breakdown">
+            <ul className="reviews__bars" aria-label={t.reviews.breakdown}>
               {counts.map((c) => (
                 <li key={c.star}>
                   <span>{c.star}</span>
@@ -73,7 +75,7 @@ export function Reviews() {
 
         <ul className="reviews__row">
           {REVIEWS.slice(0, 3).map((r, i) => (
-            <ReviewCard key={i} r={r} />
+            <ReviewCard key={i} r={r} i={i} />
           ))}
         </ul>
       </div>
@@ -81,19 +83,22 @@ export function Reviews() {
   );
 }
 
-function ReviewCard({ r }: { r: Review }) {
+function ReviewCard({ r, i }: { r: Review; i: number }) {
+  const { t } = useI18n();
   const dial = dialById(r.dial) ?? DIALS[0];
+  // sample copy is translated; a real review keeps the customer's own words
+  const words = r.sample && t.reviews.items[i] ? t.reviews.items[i] : r;
   return (
     <li className="review">
       <div className="review__top">
         <Stars value={r.rating} />
-        {r.sample ? <span className="sample-tag">Sample</span> : r.verified ? <span className="review__verified">Verified buyer</span> : null}
+        {r.sample ? <span className="sample-tag">{t.reviews.sample}</span> : r.verified ? <span className="review__verified">{t.reviews.verified}</span> : null}
       </div>
-      <h3 className="review__title">{r.title}</h3>
-      <p className="review__body">{r.body}</p>
+      <h3 className="review__title">{words.title}</h3>
+      <p className="review__body">{words.body}</p>
       <div className="review__who">
         <span className="review__avatar" aria-hidden="true">
-          {r.name
+          {words.name
             .split(' ')
             .map((w) => w[0])
             .slice(0, 2)
@@ -102,11 +107,11 @@ function ReviewCard({ r }: { r: Review }) {
         </span>
         <div>
           <p className="review__name">
-            {r.name}, {r.city}
+            {words.name}, {words.city}
           </p>
           <p className="review__meta">
             <span className="review__dial" style={{ background: `radial-gradient(circle at 35% 30%, ${dial.glow}, ${dial.swatch})` }} aria-hidden="true" />
-            {dial.name} dial · {dateFmt.format(new Date(r.date))}
+            {t.reviews.meta(t.dials[dial.id], t.longDate(new Date(r.date)))}
           </p>
         </div>
       </div>
