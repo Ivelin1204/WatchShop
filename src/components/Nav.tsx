@@ -113,9 +113,6 @@ export function Nav() {
           ))}
         </nav>
         <div className="wrap mmenu__foot" style={{ transitionDelay: menu ? '340ms' : '0ms' }}>
-          <a className="btn btn--solid btn--wide" href="#buy" onClick={() => setMenu(false)}>
-            Choose your Meridian
-          </a>
           <p>
             Free EU delivery · 30-day returns · {BRAND.city}
           </p>
