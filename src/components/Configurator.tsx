@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useCart } from '../cart/CartContext';
 import { DIALS, MODEL, SIZES, STRAPS, dialById, priceFor, strapById, type DialId, type SizeId, type StrapId } from '../data/product';
 import { money } from '../lib/format';
-import { WatchFace } from './watch/WatchFace';
+import { deliveryWindow, shortDate } from '../lib/shipping';
+import { ConfigWatch3D, type View } from './ConfigWatch3D';
 
 /** Other sections can preselect a dial in the builder by dispatching this event. */
 export const DIAL_EVENT = 'merid:choose-dial';
@@ -12,6 +13,10 @@ export function Configurator() {
   const [strap, setStrap] = useState<StrapId>('bracelet');
   const [size, setSize] = useState<SizeId>(SIZES[SIZES.length - 1].id);
   const [added, setAdded] = useState(false);
+  const [engraving, setEngraving] = useState('');
+  const [view, setView] = useState<View>('front');
+  const eta = deliveryWindow('Bulgaria');
+  const etaEU = deliveryWindow('Germany');
   const { add, setOpen } = useCart();
 
   const price = priceFor(strap);
@@ -23,7 +28,7 @@ export function Configurator() {
   }, []);
 
   const onAdd = () => {
-    add(dial, strap, size);
+    add(dial, strap, size, engraving.trim().replace(/\s+/g, ' ').toUpperCase());
     setAdded(true);
     window.setTimeout(() => setOpen(true), 380);
     window.setTimeout(() => setAdded(false), 1800);
@@ -33,15 +38,27 @@ export function Configurator() {
     <section className="section config" id="buy">
       <div className="wrap config__grid">
         <div className="config__stage">
-          <WatchFace
-            key={`${dial}-${strap}-${size}`}
+          <ConfigWatch3D
             dial={dial}
             strap={strap}
-            size={size}
-            view="head"
-            className="config__watch"
+            engraving={engraving}
+            view={view}
+            onView={setView}
             title={`${MODEL.name} with ${dialById(dial).name.toLowerCase()} dial on ${strapById(strap).name.toLowerCase()}`}
           />
+          <div className="views" role="group" aria-label="Turn the watch">
+            {(['front', 'side', 'back'] as View[]).map((v) => (
+              <button key={v} className={view === v ? 'is-on' : ''} aria-pressed={view === v} onClick={() => setView(v)}>
+                {v[0].toUpperCase() + v.slice(1)}
+              </button>
+            ))}
+          </div>
+          <p className="config__hint" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M7 12h10M7 12l3-3M7 12l3 3M17 12l-3-3M17 12l-3 3" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Drag to turn
+          </p>
         </div>
 
         <div className="config__panel">
@@ -101,10 +118,42 @@ export function Configurator() {
           </fieldset>
           )}
 
+          <div className="opt engrave">
+            <label htmlFor="engraving" className="engrave__label">
+              Engraving <span>optional, free</span>
+            </label>
+            <div className="engrave__field">
+              <input
+                id="engraving"
+                type="text"
+                maxLength={24}
+                placeholder="Initials or a date, e.g. A.P. 24.11.2026"
+                value={engraving}
+                onChange={(e) => setEngraving(e.target.value.replace(/[^\p{L}\p{N} .,&'·\-/]/gu, ''))}
+                onFocus={() => setView('back')}
+                aria-describedby="engraving-help"
+              />
+              <span className="engrave__count" aria-hidden="true">
+                {engraving.length}/24
+              </span>
+            </div>
+            <p id="engraving-help" className="engrave__help">
+              Cut into the caseback around the window. Engraved watches can’t be returned.
+            </p>
+          </div>
+
           <button className={`btn btn--solid btn--wide ${added ? 'is-done' : ''}`} onClick={onAdd}>
             <span className="btn__label">{added ? 'Added to your bag' : `Add to bag — ${money(price)}`}</span>
           </button>
-          <p className="config__note">30 days to return it unworn. Free delivery across the EU.</p>
+          <p className="config__eta">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 6h11v9H3z M14 9h4l3 3v3h-7 M6.5 18a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z M17.5 18a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+            </svg>
+            <span>
+              Order today, it arrives by <strong>{shortDate.format(eta.latest)}</strong> in Bulgaria, by {shortDate.format(etaEU.latest)} across the EU.
+            </span>
+          </p>
+          <p className="config__note">{engraving.trim() ? 'Free delivery across the EU.' : '30 days to return it unworn. Free delivery across the EU.'}</p>
         </div>
       </div>
     </section>

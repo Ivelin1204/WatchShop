@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
-import type { Dial } from '../data/product';
+import type { Dial, StrapId } from '../data/product';
 import { LOGO_PATHS } from '../components/Logo';
 
 /**
@@ -28,6 +28,8 @@ export interface WatchSceneOptions {
   tilt?: number;
   /** a slow float up and down */
   float?: boolean;
+  /** strap unbuckled and open under the wrist, so the caseback can be seen from behind */
+  openStrap?: boolean;
 }
 
 export interface WatchScene {
@@ -38,6 +40,10 @@ export interface WatchScene {
   /** target roll around the axis through the dial, in radians */
   setRoll: (radians: number) => void;
   setDial: (dial: Dial) => void;
+  /** bracelet, tan leather or black rubber */
+  setStrap: (strap: StrapId) => void;
+  /** text engraved round the caseback window; empty for the standard engraving */
+  setEngraving: (text: string) => void;
   setMovementTexture: (img: CanvasImageSource) => void;
   setActive: (active: boolean) => void;
   resize: () => void;
@@ -379,6 +385,18 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
     'centripetal',
   );
   const CLASP_HALF = 13.5; // the clasp covers this much of the loop either side of the bottom
+  const loopLen = loop.getLength();
+  // open strap: the loop is cut under the wrist between GAP_A and GAP_B
+  const OPEN = !!opts.openStrap;
+  const GAP_A = 0.35;
+  const GAP_B = 0.65;
+  const CLASP_U = OPEN ? GAP_A - CLASP_HALF / loopLen : 0.5;
+  const subCurve = (u0: number, u1: number) =>
+    new THREE.CatmullRomCurve3(
+      Array.from({ length: 41 }, (_, i) => loop.getPointAt(u0 + ((u1 - u0) * i) / 40)),
+      false,
+      'centripetal',
+    );
 
   // fitted end link: fills the space between the lugs and hugs the case
   const endShape = new THREE.Shape();
@@ -392,10 +410,12 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
   endShape.closePath();
   const endGeo = new THREE.ExtrudeGeometry(endShape, { depth: 2.6, bevelEnabled: true, bevelSize: 0.4, bevelThickness: 0.4, bevelSegments: 3, curveSegments: 32 });
   endGeo.translate(0, 0, -2.6);
+  const braceletParts = new THREE.Group();
+  watch.add(braceletParts);
   for (const sy of [-1, 1]) {
     const end = new THREE.Mesh(endGeo, brushed);
     end.scale.y = sy;
-    watch.add(end);
+    braceletParts.add(end);
   }
 
   const ROW_PITCH = 2.9;
@@ -404,12 +424,12 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
   // bracelet reads as one smooth surface with fine dark seams between links
   const riceGeo = new RoundedBoxGeometry(3.15, 2.78, 2.5, 4, 0.9);
   const rows: { pos: THREE.Vector3; tan: THREE.Vector3; taper: number }[] = [];
-  const loopLen = loop.getLength();
   const nRows = Math.floor(loopLen / ROW_PITCH);
   for (let i = 0; i < nRows; i++) {
     const u = (i * ROW_PITCH + ROW_PITCH / 2) / loopLen;
     const pos = loop.getPointAt(u);
-    if (pos.z < -40 && Math.abs(pos.y) < CLASP_HALF) continue; // under the clasp
+    if (!OPEN && pos.z < -40 && Math.abs(pos.y) < CLASP_HALF) continue; // under the clasp
+    if (OPEN && u > CLASP_U - CLASP_HALF / loopLen && u < GAP_B) continue; // clasp and the open gap
     const f = Math.min(u, 1 - u) * 2; // 0 at the case, 1 at the clasp
     rows.push({ pos, tan: loop.getTangentAt(u), taper: 1 - 0.2 * Math.min(1, f * 1.15) });
   }
@@ -433,12 +453,12 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
     [-1, 1].forEach((side, j) => outers.setMatrixAt(i * 2 + j, place(side * 7.3, 0)));
     [-3.32, 0, 3.32].forEach((dx, j) => rice.setMatrixAt(i * 3 + j, place(dx, 0.1)));
   });
-  watch.add(outers, rice);
+  braceletParts.add(outers, rice);
 
   // fold-over clasp under the wrist: polished cover, brushed inlay with the
   // Merid mark, and a release button either side
   {
-    const u = 0.5;
+    const u = CLASP_U;
     const pos = loop.getPointAt(u);
     const { x, y, z } = basis(pos, loop.getTangentAt(u));
     const clasp = new THREE.Group();
@@ -464,8 +484,96 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
       hinge.position.set(0, end * 13.9, -0.2);
       clasp.add(hinge);
     }
-    watch.add(clasp);
+    braceletParts.add(clasp);
   }
+
+  /* ───── leather and rubber straps on the same loop, with a tang buckle ───── */
+  const strapShape = (w: number, t: number) => {
+    // shape-x runs across the wrist (the path's normal is the X axis), shape-y is the thickness
+    const sh = new THREE.Shape();
+    const r = t / 2;
+    sh.moveTo(-w / 2 + r, -r);
+    sh.lineTo(w / 2 - r, -r);
+    sh.quadraticCurveTo(w / 2, -r, w / 2, 0);
+    sh.quadraticCurveTo(w / 2, r, w / 2 - r, r);
+    sh.lineTo(-w / 2 + r, r);
+    sh.quadraticCurveTo(-w / 2, r, -w / 2, 0);
+    sh.quadraticCurveTo(-w / 2, -r, -w / 2 + r, -r);
+    return sh;
+  };
+  const strapGeos = OPEN
+    ? [
+        new THREE.ExtrudeGeometry(strapShape(19.4, 3.2), { steps: 80, extrudePath: subCurve(0, GAP_A), bevelEnabled: false }),
+        new THREE.ExtrudeGeometry(strapShape(19.4, 3.2), { steps: 80, extrudePath: subCurve(GAP_B, 1), bevelEnabled: false }),
+      ]
+    : [new THREE.ExtrudeGeometry(strapShape(19.4, 3.2), { steps: 160, extrudePath: loop, bevelEnabled: false })];
+  const holeMat = new THREE.MeshBasicMaterial({ color: '#050505' });
+  // the punched holes on the free end of an open strap
+  const holes = () => {
+    const g = new THREE.Group();
+    if (!OPEN) return g;
+    const geo = new THREE.CircleGeometry(1.15, 24);
+    for (let i = 0; i < 5; i++) {
+      const u = GAP_B + (9 + i * 6.5) / loopLen;
+      const pos = loop.getPointAt(u);
+      const { x, y, z } = basis(pos, loop.getTangentAt(u));
+      const h = new THREE.Mesh(geo, holeMat);
+      h.matrixAutoUpdate = false;
+      h.matrix.makeBasis(x, y, z).setPosition(pos.clone().addScaledVector(z, 1.62));
+      g.add(h);
+    }
+    return g;
+  };
+  const leather = new THREE.MeshStandardMaterial({ color: '#7a4526', roughness: 0.62, metalness: 0 });
+  const rubber = new THREE.MeshStandardMaterial({ color: '#1b1d20', roughness: 0.85, metalness: 0 });
+  const buckle = () => {
+    // closed: under the wrist; open: on the end of the 12 o'clock half
+    const u = OPEN ? GAP_A - 4 / loopLen : 0.5;
+    const pos = loop.getPointAt(u);
+    const { x, y, z } = basis(pos, loop.getTangentAt(u));
+    const g = new THREE.Group();
+    g.matrixAutoUpdate = false;
+    g.matrix.makeBasis(x, y, z).setPosition(pos);
+    const frame = new THREE.Shape();
+    frame.moveTo(-11.6, -6.5);
+    frame.lineTo(11.6, -6.5);
+    frame.lineTo(11.6, 6.5);
+    frame.lineTo(-11.6, 6.5);
+    frame.closePath();
+    const hole = new THREE.Path();
+    hole.moveTo(-9.6, -4.5);
+    hole.lineTo(-9.6, 4.5);
+    hole.lineTo(9.6, 4.5);
+    hole.lineTo(9.6, -4.5);
+    hole.closePath();
+    frame.holes.push(hole);
+    const ring = new THREE.Mesh(new THREE.ExtrudeGeometry(frame, { depth: 1.4, bevelEnabled: true, bevelSize: 0.4, bevelThickness: 0.4, bevelSegments: 3 }), polished);
+    ring.position.z = 1.4;
+    const tang = new THREE.Mesh(new RoundedBoxGeometry(1.4, 8.4, 1, 2, 0.4), polished);
+    tang.position.set(0, -1.2, 2.6);
+    g.add(ring, tang);
+    return g;
+  };
+  const leatherParts = new THREE.Group();
+  leatherParts.add(...strapGeos.map((g) => new THREE.Mesh(g, leather)), buckle(), holes());
+  const rubberParts = new THREE.Group();
+  rubberParts.add(...strapGeos.map((g) => new THREE.Mesh(g, rubber)), buckle(), holes());
+  for (const sy of [-1, 1]) {
+    // spring bars where the strap wraps round between the lugs
+    const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 21.6, 16), polished);
+    bar.rotation.z = Math.PI / 2;
+    bar.position.set(0, sy * 22.4, -1.3);
+    leatherParts.add(bar.clone());
+    rubberParts.add(bar);
+  }
+  leatherParts.visible = false;
+  rubberParts.visible = false;
+  watch.add(leatherParts, rubberParts);
+  const setStrapParts = (id: StrapId) => {
+    braceletParts.visible = id === 'bracelet';
+    leatherParts.visible = id === 'leather';
+    rubberParts.visible = id === 'rubber';
+  };
 
   /* ───── caseback ───── */
   watch.add(
@@ -480,15 +588,59 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
       polished,
     ),
   );
-  const notches = new THREE.InstancedMesh(new THREE.BoxGeometry(1.6, 1.0, 0.5), darkMetal, 8);
-  for (let i = 0; i < 8; i++) {
-    const a = (i / 8) * Math.PI * 2;
-    tmp.position.set(Math.cos(a) * 14.8, Math.sin(a) * 14.8, -7.1);
-    tmp.rotation.set(0, 0, a + Math.PI / 2);
-    tmp.updateMatrix();
-    notches.setMatrixAt(i, tmp.matrix);
-  }
-  watch.add(notches);
+  // engraving round the window: the standard text, or the buyer's own on the upper arc
+  const engraveCanvas = document.createElement('canvas');
+  engraveCanvas.width = engraveCanvas.height = 1024;
+  const engraveTex = new THREE.CanvasTexture(engraveCanvas);
+  engraveTex.colorSpace = THREE.SRGBColorSpace;
+  engraveTex.anisotropy = 8;
+  const engraveMat = new THREE.MeshStandardMaterial({ map: engraveTex, transparent: true, metalness: 0.6, roughness: 0.45, depthWrite: false });
+  const engraveRing = new THREE.Mesh(new THREE.RingGeometry(12.85, 15.35, 128), engraveMat);
+  engraveRing.rotation.y = Math.PI; // faces the back, like the caseback
+  engraveRing.position.z = -7.13;
+  watch.add(engraveRing);
+  const STANDARD_TOP = 'MERID  ·  SOFIA  ·  AUTOMATIC CHRONOGRAPH';
+  const STANDARD_BOTTOM = 'SAPPHIRE  ·  100 M  ·  316L STEEL';
+  const paintEngraving = (text: string) => {
+    const c = engraveCanvas.getContext('2d')!;
+    const S = 1024;
+    const C = S / 2;
+    const k = C / 15.35; // px per mm
+    c.clearRect(0, 0, S, S);
+    // the ring is turned to face the back, which already shows the canvas the right way round
+    c.save();
+    const arc = (str: string, radiusMm: number, top: boolean, sizeMm: number, weight: number) => {
+      c.font = `${weight} ${sizeMm * k}px "Manrope Variable", Manrope, sans-serif`;
+      const chars = [...str];
+      const widths = chars.map((ch) => c.measureText(ch).width + 0.06 * k);
+      const total = widths.reduce((a, w) => a + w, 0);
+      const r = radiusMm * k;
+      let a = (top ? -Math.PI / 2 : Math.PI / 2) + (top ? -1 : 1) * (total / r) / 2;
+      chars.forEach((ch, i) => {
+        const w = widths[i];
+        const mid = a + ((top ? 1 : -1) * (w / 2)) / r;
+        c.save();
+        c.translate(C + Math.cos(mid) * r, C + Math.sin(mid) * r);
+        c.rotate(mid + (top ? Math.PI / 2 : -Math.PI / 2));
+        c.textAlign = 'center';
+        c.textBaseline = 'middle';
+        // an engraved line: a dark cut with a light edge under it
+        c.fillStyle = 'rgba(255,255,255,0.55)';
+        c.fillText(ch, 0, 1.2);
+        c.fillStyle = '#1f2226';
+        c.fillText(ch, 0, 0);
+        c.restore();
+        a += ((top ? 1 : -1) * w) / r;
+      });
+    };
+    const custom = text.trim().toUpperCase();
+    arc(custom || STANDARD_TOP, 14.05, true, custom ? 1.85 : 0.95, custom ? 800 : 600);
+    arc(STANDARD_BOTTOM, 14.1, false, 0.95, 600);
+    c.restore();
+    engraveTex.needsUpdate = true;
+  };
+  let currentEngraving = '';
+  paintEngraving('');
   const moveCanvas = document.createElement('canvas');
   moveCanvas.width = moveCanvas.height = 768;
   const moveTex = new THREE.CanvasTexture(moveCanvas);
@@ -618,7 +770,11 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
   };
   paintDial(dial);
   // repaint once the web font is ready, so the dial text uses Manrope
-  document.fonts?.ready.then(() => paintDial(currentDial));
+  document.fonts?.ready.then(() => {
+    paintDial(currentDial);
+    paintEngraving(currentEngraving);
+    kick();
+  });
   let currentDial = dial;
 
   /* ───── framing ───── */
@@ -740,6 +896,15 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
       paintDial(d);
       kick();
     },
+    setStrap: (id) => {
+      setStrapParts(id);
+      kick();
+    },
+    setEngraving: (text) => {
+      currentEngraving = text;
+      paintEngraving(text);
+      kick();
+    },
     setMovementTexture: (img) => {
       const c = moveCanvas.getContext('2d')!;
       c.clearRect(0, 0, moveCanvas.width, moveCanvas.height);
@@ -758,7 +923,8 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
       scene.traverse((o) => {
         if (o instanceof THREE.Mesh) o.geometry.dispose();
       });
-      [brushed, polished, darkMetal, lume, orange, blackHand, sapphire, dialMat, moveMat, subPrint, markMat].forEach((m) => m.dispose());
+      [brushed, polished, darkMetal, lume, orange, blackHand, sapphire, dialMat, moveMat, subPrint, markMat, leather, rubber, engraveMat, holeMat].forEach((m) => m.dispose());
+      engraveTex.dispose();
       markTex.dispose();
       dialTex.dispose();
       moveTex.dispose();

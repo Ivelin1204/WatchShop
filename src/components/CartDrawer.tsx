@@ -79,6 +79,7 @@ export function CartDrawer() {
                         {MODEL.short} · {dialById(i.dial).name}
                       </p>
                       <p className="line__meta">{strapById(i.strap).name}</p>
+                      {i.engraving && <p className="line__meta line__engr">Engraved: “{i.engraving}”</p>}
                       <div className="qty">
                         <button onClick={() => setQty(i.key, i.qty - 1)} aria-label={`One fewer ${dialById(i.dial).name} ${MODEL.short}`}>
                           −

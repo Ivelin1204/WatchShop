@@ -8,10 +8,12 @@ export interface CartItem {
   size: SizeId;
   qty: number;
   unitPrice: number;
+  /** text engraved on the caseback, free; empty for none */
+  engraving?: string;
 }
 
 type Action =
-  | { type: 'add'; dial: DialId; strap: StrapId; size: SizeId }
+  | { type: 'add'; dial: DialId; strap: StrapId; size: SizeId; engraving: string }
   | { type: 'qty'; key: string; qty: number }
   | { type: 'remove'; key: string }
   | { type: 'clear' };
@@ -22,10 +24,10 @@ const MAX_QTY = 5;
 function reducer(items: CartItem[], a: Action): CartItem[] {
   switch (a.type) {
     case 'add': {
-      const key = `${a.dial}-${a.strap}-${a.size}`;
+      const key = `${a.dial}-${a.strap}-${a.size}-${a.engraving}`;
       const found = items.find((i) => i.key === key);
       if (found) return items.map((i) => (i.key === key ? { ...i, qty: Math.min(MAX_QTY, i.qty + 1) } : i));
-      return [...items, { key, dial: a.dial, strap: a.strap, size: a.size, qty: 1, unitPrice: priceFor(a.strap) }];
+      return [...items, { key, dial: a.dial, strap: a.strap, size: a.size, qty: 1, unitPrice: priceFor(a.strap), engraving: a.engraving || undefined }];
     }
     case 'qty':
       return a.qty <= 0
@@ -54,7 +56,7 @@ interface CartValue {
   subtotal: number;
   open: boolean;
   setOpen: (v: boolean) => void;
-  add: (dial: DialId, strap: StrapId, size: SizeId) => void;
+  add: (dial: DialId, strap: StrapId, size: SizeId, engraving?: string) => void;
   setQty: (key: string, qty: number) => void;
   remove: (key: string) => void;
   clear: () => void;
@@ -74,7 +76,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [items]);
 
-  const add = useCallback((dial: DialId, strap: StrapId, size: SizeId) => dispatch({ type: 'add', dial, strap, size }), []);
+  const add = useCallback(
+    (dial: DialId, strap: StrapId, size: SizeId, engraving = '') => dispatch({ type: 'add', dial, strap, size, engraving: engraving.trim() }),
+    [],
+  );
   const setQty = useCallback((key: string, qty: number) => dispatch({ type: 'qty', key, qty }), []);
   const remove = useCallback((key: string) => dispatch({ type: 'remove', key }), []);
   const clear = useCallback(() => dispatch({ type: 'clear' }), []);
