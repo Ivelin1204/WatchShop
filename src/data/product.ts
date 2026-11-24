@@ -59,8 +59,8 @@ export const MODEL = {
 };
 
 export const DIALS: Dial[] = [
-  { id: 'slate', name: 'Slate', base: '#4B5057', glow: '#767C84', sub: '#3A3E44', print: '#F1EEE7', swatch: '#6A7078', dark: true },
-  { id: 'midnight', name: 'Midnight', base: '#121A2B', glow: '#2B3B5C', sub: '#0A101C', print: '#ECE7DD', swatch: '#1B2742', dark: true },
+  { id: 'slate', name: 'Slate', base: '#33363B', glow: '#5E636A', sub: '#2A2D31', print: '#F1EEE7', swatch: '#45494F', dark: true },
+  { id: 'midnight', name: 'Midnight', base: '#101C38', glow: '#2C4677', sub: '#0B1428', print: '#ECE7DD', swatch: '#1A2A4E', dark: true },
   { id: 'bone', name: 'Bone', base: '#E6DFD1', glow: '#F6F2EA', sub: '#D6CDBC', print: '#1A1C1F', swatch: '#E6DFD1', dark: false },
 ];
 

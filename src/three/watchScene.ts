@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import type { Dial, StrapId } from '../data/product';
 import { LOGO_PATHS } from '../components/Logo';
@@ -50,16 +49,42 @@ export interface WatchScene {
   dispose: () => void;
 }
 
+/**
+ * A dark photo studio for the reflections: black all round, a large softbox
+ * above and in front, two tall strip lights either side and a dim bounce card
+ * below. Polished steel then shows crisp white bands on black, like a product shot.
+ */
+function studioEnvironment() {
+  const room = new THREE.Scene();
+  room.background = new THREE.Color('#1c1d20');
+  const panel = (w: number, h: number, intensity: number, pos: [number, number, number], tint = '#ffffff') => {
+    const m = new THREE.Mesh(
+      new THREE.PlaneGeometry(w, h),
+      new THREE.MeshBasicMaterial({ color: new THREE.Color(tint).multiplyScalar(intensity), side: THREE.DoubleSide }),
+    );
+    m.position.set(...pos);
+    m.lookAt(0, 0, 0);
+    room.add(m);
+  };
+  panel(14, 8, 3.4, [-2, 7, 6]); // main softbox, above and towards the camera
+  panel(3, 12, 2.6, [-8, 0, 3]); // strip, left
+  panel(3, 12, 2.2, [8, 0, -1], '#fff1e6'); // strip, right, slightly warm
+  panel(10, 3, 0.9, [0, -7, 4]); // bounce card below
+  panel(6, 6, 1.4, [3, 4, -8]); // kicker behind
+  panel(8, 4, 1.1, [0, 0, 9]); // fill from the camera side
+  return room;
+}
+
 export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced: boolean, opts: WatchSceneOptions = {}): WatchScene {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 0.82;
+  renderer.toneMappingExposure = 1.0;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
 
   const scene = new THREE.Scene();
   const pmrem = new THREE.PMREMGenerator(renderer);
-  const env = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+  const env = pmrem.fromScene(studioEnvironment(), 0.02).texture;
   scene.environment = env;
 
   const camera = new THREE.PerspectiveCamera(26, 1, 1, 1000);
@@ -74,8 +99,8 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
   scene.add(new THREE.AmbientLight('#ffffff', 0.15));
 
   /* ───── materials ───── */
-  const brushed = new THREE.MeshPhysicalMaterial({ color: '#c4c7cb', metalness: 1, roughness: 0.4, clearcoat: 0.2, side: THREE.DoubleSide });
-  const polished = new THREE.MeshPhysicalMaterial({ color: '#e4e6e9', metalness: 1, roughness: 0.1, side: THREE.DoubleSide });
+  const brushed = new THREE.MeshPhysicalMaterial({ color: '#cfd2d6', metalness: 1, roughness: 0.3, clearcoat: 0.15, side: THREE.DoubleSide });
+  const polished = new THREE.MeshPhysicalMaterial({ color: '#eef0f2', metalness: 1, roughness: 0.06, side: THREE.DoubleSide });
   const darkMetal = new THREE.MeshStandardMaterial({ color: '#2a2c30', metalness: 0.6, roughness: 0.45, side: THREE.DoubleSide });
   const lume = new THREE.MeshStandardMaterial({ color: LUME, roughness: 0.6, emissive: '#9fb08a', emissiveIntensity: 0.06 });
   const orange = new THREE.MeshStandardMaterial({ color: ORANGE, metalness: 0.3, roughness: 0.35 });
@@ -157,7 +182,7 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
   dialTex.colorSpace = THREE.SRGBColorSpace;
   dialTex.anisotropy = 8;
   // low env reflection on the dial: the studio light box would otherwise show as a bright patch
-  const dialMat = new THREE.MeshPhysicalMaterial({ map: dialTex, metalness: 0.15, roughness: 0.55, envMapIntensity: 0.12 });
+  const dialMat = new THREE.MeshPhysicalMaterial({ map: dialTex, metalness: 0.15, roughness: 0.55, envMapIntensity: 0.35 });
   const dialMesh = new THREE.Mesh(new THREE.CircleGeometry(DIAL_R, 128), dialMat);
   dialMesh.position.z = DIAL_Z;
   watch.add(dialMesh);
@@ -166,8 +191,8 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
   const markers = new THREE.Group();
   watch.add(markers);
   const markerMats = { body: polished as THREE.Material };
-  const addMarker = (angle: number, x: number, long: boolean) => {
-    const len = long ? 3.6 : 3.2;
+  const addMarker = (angle: number, x: number, long: boolean, short = false) => {
+    const len = short ? 1.5 : long ? 3.6 : 3.2;
     const m = new THREE.Group();
     const body = new THREE.Mesh(new THREE.BoxGeometry(1.05, len, 0.55), markerMats.body);
     const ins = new THREE.Mesh(new THREE.BoxGeometry(0.46, len - 0.6, 0.2), lume);
@@ -179,8 +204,11 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
     markers.add(m);
   };
   for (let i = 0; i < 12; i++) {
-    if (i === 3 || i === 6 || i === 9) continue; // counters and date
     const a = (i / 12) * Math.PI * 2;
+    if (i === 3 || i === 6 || i === 9) {
+      addMarker(a, 0, false, true); // short, clear of the counters and the date
+      continue;
+    }
     if (i === 0) {
       addMarker(a, -0.95, true);
       addMarker(a, 0.95, true);
@@ -205,31 +233,45 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
   watch.add(frame);
 
   /* ───── hands ───── */
-  const baton = (len: number, w: number, tail: number) => {
+  const sword = (len: number, w: number, tail: number) => {
     const sh = new THREE.Shape();
+    const shoulder = len * 0.68;
     sh.moveTo(0, len);
-    sh.lineTo(w / 2, len - w * 0.9);
-    sh.lineTo(w / 2, -tail);
-    sh.lineTo(-w / 2, -tail);
-    sh.lineTo(-w / 2, len - w * 0.9);
+    sh.lineTo(w / 2, shoulder);
+    sh.lineTo(w * 0.22, 0.9);
+    sh.quadraticCurveTo(w * 0.42, 0, w * 0.22, -tail);
+    sh.lineTo(-w * 0.22, -tail);
+    sh.quadraticCurveTo(-w * 0.42, 0, -w * 0.22, 0.9);
+    sh.lineTo(-w / 2, shoulder);
+    sh.closePath();
+    return sh;
+  };
+  const swordLume = (len: number, w: number) => {
+    const sh = new THREE.Shape();
+    const shoulder = len * 0.68;
+    sh.moveTo(0, len - w * 0.9);
+    sh.lineTo(w * 0.2, shoulder);
+    sh.lineTo(w * 0.09, 2.4);
+    sh.lineTo(-w * 0.09, 2.4);
+    sh.lineTo(-w * 0.2, shoulder);
     sh.closePath();
     return sh;
   };
   const handGroup = (len: number, w: number, z: number) => {
     const g = new THREE.Group();
     const body = new THREE.Mesh<THREE.BufferGeometry, THREE.Material>(
-      new THREE.ExtrudeGeometry(baton(len, w, 1.3), { depth: 0.22, bevelEnabled: true, bevelSize: 0.07, bevelThickness: 0.06, bevelSegments: 2 }),
+      new THREE.ExtrudeGeometry(sword(len, w, 1.6), { depth: 0.2, bevelEnabled: true, bevelSize: 0.12, bevelThickness: 0.1, bevelSegments: 2 }),
       polished,
     );
-    const ins = new THREE.Mesh(new THREE.BoxGeometry(w * 0.48, len - 3.2, 0.1), lume);
-    ins.position.set(0, 1.2 + (len - 3.2) / 2, 0.32);
+    const ins = new THREE.Mesh(new THREE.ShapeGeometry(swordLume(len, w)), lume);
+    ins.position.z = 0.33;
     g.add(body, ins);
     g.position.z = z;
     watch.add(g);
     return { g, body };
   };
-  const hourHand = handGroup(9.4, 1.4, DIAL_Z + 0.9);
-  const minuteHand = handGroup(13.9, 1.15, DIAL_Z + 1.3);
+  const hourHand = handGroup(9.6, 2.0, DIAL_Z + 0.9);
+  const minuteHand = handGroup(14.2, 1.6, DIAL_Z + 1.3);
 
   // chronograph seconds: orange, resting at 12 until started
   const chrono = new THREE.Group();
@@ -241,7 +283,7 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
   chrono.add(chronoBar, chronoTail);
   chrono.position.z = DIAL_Z + 1.75;
   watch.add(chrono);
-  const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.75, 0.5, 32), polished);
+  const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.75, 0.5, 32), orange);
   cap.rotation.x = Math.PI / 2;
   cap.position.z = DIAL_Z + 1.9;
   watch.add(cap);
@@ -340,15 +382,16 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
   lugShape.quadraticCurveTo(7.6, -3.6, 5.6, -3.4);
   lugShape.lineTo(0, -2.6);
   lugShape.closePath();
-  const lugGeo = new THREE.ExtrudeGeometry(lugShape, { depth: 2.2, bevelEnabled: true, bevelSize: 0.35, bevelThickness: 0.35, bevelSegments: 3 });
-  lugGeo.translate(0, 0, -1.1);
+  const lugGeo = new THREE.ExtrudeGeometry(lugShape, { depth: 2.6, bevelEnabled: true, bevelSize: 0.4, bevelThickness: 0.4, bevelSegments: 3 });
+  lugGeo.translate(0, 0, -1.3);
   // (x, y, z) -> (z, x, y): shape x becomes +Y, shape y becomes +Z, extrusion becomes X
   lugGeo.applyMatrix4(new THREE.Matrix4().set(0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1));
   lugGeo.computeVertexNormals();
   for (const sx of [-1, 1]) {
     for (const sy of [-1, 1]) {
-      const lug = new THREE.Mesh(lugGeo, brushed);
-      lug.position.set(sx * 11.3, sy * 14.8, 0);
+      // flanks polished, top and ends brushed, like the photographs
+      const lug = new THREE.Mesh(lugGeo, [polished, brushed]);
+      lug.position.set(sx * 11.55, sy * 14.8, 0);
       lug.scale.y = sy; // mirror for the 6 o'clock side
       watch.add(lug);
     }
@@ -726,10 +769,29 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
     g.addColorStop(1, d.base);
     c.fillStyle = g;
     c.fillRect(0, 0, S, S);
-    // sunburst
-    for (let i = 0; i < 360; i++) {
-      const a = (i / 360) * Math.PI * 2;
-      tick(C, C, a, 0, C * 1.1, 2, i % 2 ? (d.dark ? 0.06 : 0.035) : d.dark ? 0.045 : 0.05, i % 2 ? '#000' : '#fff');
+    // sunburst: fine radial brushing, and the two bright wedges a brushed
+    // dial throws back from a light above (top right and bottom left)
+    for (let i = 0; i < 720; i++) {
+      const a = (i / 720) * Math.PI * 2;
+      tick(C, C, a, 0, C * 1.1, 1.2, i % 2 ? (d.dark ? 0.07 : 0.03) : d.dark ? 0.05 : 0.045, i % 2 ? '#000' : '#fff');
+    }
+    if ('createConicGradient' in c) {
+      const sheen = c.createConicGradient(-Math.PI / 2, C, C);
+      const hi = d.dark ? 'rgba(255,255,255,0.20)' : 'rgba(255,255,255,0.32)';
+      const lo = d.dark ? 'rgba(0,0,0,0.22)' : 'rgba(0,0,0,0.06)';
+      [
+        [0, lo],
+        [0.1, hi],
+        [0.22, lo],
+        [0.38, 'rgba(0,0,0,0)'],
+        [0.5, lo],
+        [0.6, hi],
+        [0.72, lo],
+        [0.88, 'rgba(0,0,0,0)'],
+        [1, lo],
+      ].forEach(([o, col]) => sheen.addColorStop(o as number, col as string));
+      c.fillStyle = sheen;
+      c.fillRect(0, 0, S, S);
     }
     // fifth-of-a-second track
     for (let i = 0; i < 240; i++) {
@@ -745,15 +807,16 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
       c.beginPath();
       c.arc(cx, cy, SUB_R * k, 0, Math.PI * 2);
       c.fill();
-      for (let i = 0; i < 12; i++) {
+      // azurage: fine concentric grooves
+      for (let i = 0; i < 40; i++) {
         c.strokeStyle = i % 2 ? '#fff' : '#000';
-        c.globalAlpha = 0.07;
-        c.lineWidth = 3;
+        c.globalAlpha = 0.045;
+        c.lineWidth = 1.2;
         c.beginPath();
-        c.arc(cx, cy, (0.6 + i * 0.3) * k, 0, Math.PI * 2);
+        c.arc(cx, cy, (0.3 + i * 0.095) * k, 0, Math.PI * 2);
         c.stroke();
       }
-      c.globalAlpha = 0.35;
+      c.globalAlpha = 0.18;
       c.strokeStyle = d.print;
       c.lineWidth = 2.5;
       c.beginPath();
@@ -780,13 +843,13 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
     // printing
     c.fillStyle = d.print;
     c.textAlign = 'center';
-    c.font = font(700, 1.9);
-    spacing(0.6);
-    c.fillText('MERID', C + 0.3 * k, C - 7.6 * k);
-    c.globalAlpha = 0.78;
-    c.font = font(600, 0.85);
-    spacing(0.36);
-    c.fillText('AUTOMATIC', C + 0.18 * k, C - 6.1 * k);
+    c.font = font(600, 2.25);
+    spacing(0.55);
+    c.fillText('MERID', C + 0.28 * k, C - 7.3 * k);
+    c.globalAlpha = 0.85;
+    c.font = font(600, 0.95);
+    spacing(0.34);
+    c.fillText('AUTOMATIC', C + 0.17 * k, C - 5.5 * k);
     c.globalAlpha = 1;
     c.fillStyle = ORANGE;
     c.font = font(700, 0.8);
