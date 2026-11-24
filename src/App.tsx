@@ -3,6 +3,7 @@ import { BackToTop } from './components/BackToTop';
 import { CartDrawer } from './components/CartDrawer';
 import { CheckoutPage } from './components/CheckoutPage';
 import { Configurator } from './components/Configurator';
+import { Gallery } from './components/Gallery';
 import { Hero } from './components/Hero';
 import { Showcase3D } from './components/Showcase3D';
 import { Nav } from './components/Nav';
@@ -31,6 +32,7 @@ function Shop() {
       <main id="main">
         <Hero />
         <Showcase3D />
+        <Gallery />
         <Configurator />
         <Details />
         <Profile />

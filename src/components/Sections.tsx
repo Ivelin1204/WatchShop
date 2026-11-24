@@ -327,7 +327,7 @@ export function Footer() {
       </div>
       <div className="wrap footer__base">
         <span>© 2026 {BRAND.legal}</span>
-        <span>Prices include VAT</span>
+        <span>Prices include VAT · Product photos are AI-generated illustrations</span>
       </div>
     </footer>
   );
