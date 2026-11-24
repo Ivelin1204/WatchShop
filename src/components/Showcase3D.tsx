@@ -80,7 +80,7 @@ export function Showcase3D() {
       try {
         const { createWatchScene } = await import('../three/watchScene');
         if (disposed || !canvas.current) return;
-        const s = createWatchScene(canvas.current, dialById(dial), reduced);
+        const s = createWatchScene(canvas.current, dialById(dial), reduced, { fit: { h: 104, w: 86 } });
         sceneRef.current = s;
         setReady(true);
 

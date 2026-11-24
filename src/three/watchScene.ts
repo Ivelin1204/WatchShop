@@ -353,19 +353,33 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
   // five rows of links: flat brushed outer links and three rows of wide
   // polished centre links, packed tight.
   // A solid end link is fitted to the case between the lugs.
-  const braceletCurve = (sy: number) =>
-    new THREE.CatmullRomCurve3(
+  // one continuous loop round an oval wrist: out of the 12 o'clock end link,
+  // down round the wrist to the clasp underneath, and back up to 6 o'clock
+  const WRIST_CENTRE_Z = -26;
+  const loop = new THREE.CatmullRomCurve3(
+    (
       [
-        new THREE.Vector3(0, sy * 22.4, -1.3),
-        new THREE.Vector3(0, sy * 28.6, -2.9),
-        new THREE.Vector3(0, sy * 35.2, -7.8),
-        new THREE.Vector3(0, sy * 40.0, -15.5),
-        new THREE.Vector3(0, sy * 42.0, -25.0),
-        new THREE.Vector3(0, sy * 41.0, -34.0),
-      ],
-      false,
-      'centripetal',
-    );
+        [22.4, -1.3],
+        [28.4, -3.4],
+        [32.6, -9.6],
+        [34.0, -19.5],
+        [31.4, -30.5],
+        [24.6, -40.2],
+        [13.4, -46.8],
+        [0, -48.8],
+        [-13.4, -46.8],
+        [-24.6, -40.2],
+        [-31.4, -30.5],
+        [-34.0, -19.5],
+        [-32.6, -9.6],
+        [-28.4, -3.4],
+        [-22.4, -1.3],
+      ] as [number, number][]
+    ).map(([y, z]) => new THREE.Vector3(0, y, z)),
+    false,
+    'centripetal',
+  );
+  const CLASP_HALF = 13.5; // the clasp covers this much of the loop either side of the bottom
 
   // fitted end link: fills the space between the lugs and hugs the case
   const endShape = new THREE.Shape();
@@ -390,32 +404,69 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
   // centre links: long polished pills packed tight, so the middle of the
   // bracelet reads as one smooth surface with fine dark seams between links
   const riceGeo = new RoundedBoxGeometry(3.15, 2.78, 2.5, 4, 0.9);
-  const rows: { pos: THREE.Vector3; tan: THREE.Vector3; taper: number; i: number }[] = [];
-  for (const sy of [-1, 1]) {
-    const curve = braceletCurve(sy);
-    const len = curve.getLength();
-    const n = Math.floor(len / ROW_PITCH);
-    for (let i = 0; i < n; i++) {
-      const u = (i * ROW_PITCH + ROW_PITCH / 2) / len;
-      rows.push({ pos: curve.getPointAt(u), tan: curve.getTangentAt(u), taper: 1 - 0.2 * u, i });
-    }
+  const rows: { pos: THREE.Vector3; tan: THREE.Vector3; taper: number }[] = [];
+  const loopLen = loop.getLength();
+  const nRows = Math.floor(loopLen / ROW_PITCH);
+  for (let i = 0; i < nRows; i++) {
+    const u = (i * ROW_PITCH + ROW_PITCH / 2) / loopLen;
+    const pos = loop.getPointAt(u);
+    if (pos.z < -40 && Math.abs(pos.y) < CLASP_HALF) continue; // under the clasp
+    const f = Math.min(u, 1 - u) * 2; // 0 at the case, 1 at the clasp
+    rows.push({ pos, tan: loop.getTangentAt(u), taper: 1 - 0.2 * Math.min(1, f * 1.15) });
   }
   const outers = new THREE.InstancedMesh(outerGeo, brushed, rows.length * 2);
   const rice = new THREE.InstancedMesh(riceGeo, polished, rows.length * 3);
   const X = new THREE.Vector3(1, 0, 0);
   const m = new THREE.Matrix4();
-  rows.forEach((r, i) => {
-    const y = r.tan.clone().normalize();
-    // z must face away from the wrist on both halves of the bracelet
-    const sy = r.pos.y >= 0 ? 1 : -1;
-    const z = new THREE.Vector3().crossVectors(X, y).multiplyScalar(sy).normalize();
+  // basis for a link: x across the wrist, y along the bracelet, z facing away from the wrist
+  const basis = (pos: THREE.Vector3, tan: THREE.Vector3) => {
+    const y = tan.clone().normalize();
+    const z = new THREE.Vector3().crossVectors(X, y).normalize();
+    const away = new THREE.Vector3(0, pos.y, pos.z - WRIST_CENTRE_Z);
+    if (z.dot(away) < 0) z.negate();
     const x = new THREE.Vector3().crossVectors(y, z).normalize();
+    return { x, y, z };
+  };
+  rows.forEach((r, i) => {
+    const { x, y, z } = basis(r.pos, r.tan);
     const place = (dx: number, lift: number) =>
       m.makeBasis(x, y, z).scale(new THREE.Vector3(r.taper, 1, 1)).setPosition(r.pos.clone().addScaledVector(X, dx * r.taper).addScaledVector(z, lift));
     [-1, 1].forEach((side, j) => outers.setMatrixAt(i * 2 + j, place(side * 7.3, 0)));
     [-3.32, 0, 3.32].forEach((dx, j) => rice.setMatrixAt(i * 3 + j, place(dx, 0.1)));
   });
   watch.add(outers, rice);
+
+  // fold-over clasp under the wrist: polished cover, brushed inlay with the
+  // Merid mark, and a release button either side
+  {
+    const u = 0.5;
+    const pos = loop.getPointAt(u);
+    const { x, y, z } = basis(pos, loop.getTangentAt(u));
+    const clasp = new THREE.Group();
+    clasp.matrixAutoUpdate = false;
+    clasp.matrix.makeBasis(x, y, z).setPosition(pos);
+    const cover = new THREE.Mesh(new RoundedBoxGeometry(17.2, 27, 3.2, 4, 1.2), brushed);
+    cover.position.z = 0.2;
+    const inlay = new THREE.Mesh(new RoundedBoxGeometry(11, 19, 0.6, 3, 0.25), polished);
+    inlay.position.z = 1.75;
+    const plaque = new THREE.Mesh(new THREE.CircleGeometry(3.2, 48), markMat);
+    plaque.position.z = 2.08;
+    clasp.add(cover, inlay, plaque);
+    for (const side of [-1, 1]) {
+      const btn = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.3, 1.6, 24), polished);
+      btn.rotation.z = Math.PI / 2;
+      btn.position.set(side * 9.1, 0, 0.2);
+      clasp.add(btn);
+    }
+    // the hinge bars where the bracelet meets the clasp
+    for (const end of [-1, 1]) {
+      const hinge = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 16.4, 20), brushed);
+      hinge.rotation.z = Math.PI / 2;
+      hinge.position.set(0, end * 13.9, -0.2);
+      clasp.add(hinge);
+    }
+    watch.add(clasp);
+  }
 
   /* ───── caseback ───── */
   watch.add(

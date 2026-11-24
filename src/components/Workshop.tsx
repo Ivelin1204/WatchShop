@@ -25,7 +25,7 @@ interface Day {
 
 const DAYS: Day[] = [
   { name: 'Dial up', note: 'Lying flat, as on a bedside table.', pose: { turn: -0.35, tilt: -1.0, roll: 0 }, drift: 0.16 },
-  { name: 'Dial down', note: 'Face down, movement towards the light.', pose: { turn: Math.PI + 0.35, tilt: -0.85, roll: 0 }, drift: -0.1 },
+  { name: 'Dial down', note: 'Face down on its crystal, clasp up.', pose: { turn: Math.PI + 0.3, tilt: -0.45, roll: 0 }, drift: -0.1 },
   { name: 'Crown up', note: 'Standing on its side, crown to the sky.', pose: { turn: -0.45, tilt: 0.15, roll: Math.PI / 2 }, drift: 0.26 },
   { name: 'Crown down', note: 'As it hangs on a resting arm.', pose: { turn: -0.45, tilt: 0.15, roll: -Math.PI / 2 }, drift: -0.2 },
   { name: 'Crown left', note: 'As it sits on a raised wrist.', pose: { turn: 0.45, tilt: 0.15, roll: Math.PI }, drift: 0.06 },
@@ -137,7 +137,7 @@ function Bench({ day, started, done, reduced }: { day: number; started: boolean;
         const { createWatchScene } = await import('../three/watchScene');
         if (disposed || !canvas.current) return;
         const s = createWatchScene(canvas.current, dialById('slate'), reduced, {
-          fit: { h: 92, w: 92 },
+          fit: { h: 104, w: 104 },
           tilt: DAYS[0].pose.tilt,
           initial: { turn: DAYS[0].pose.turn, tilt: DAYS[0].pose.tilt },
         });

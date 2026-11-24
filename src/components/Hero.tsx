@@ -143,7 +143,7 @@ function HeroWatch() {
         const { createWatchScene } = await import('../three/watchScene');
         if (disposed || !canvas.current) return;
         scene = createWatchScene(canvas.current, dialById('midnight'), reduced, {
-          fit: { h: 86, w: 64 },
+          fit: { h: 92, w: 82 },
           initial: { turn: -1.9, tilt: 0.05 },
           tilt: POSE.tilt,
           float: true,
