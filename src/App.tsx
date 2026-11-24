@@ -6,6 +6,7 @@ import { Configurator } from './components/Configurator';
 import { Hero } from './components/Hero';
 import { Showcase3D } from './components/Showcase3D';
 import { Nav } from './components/Nav';
+import { Reviews } from './components/Reviews';
 import { ScrollProgress } from './components/ScrollProgress';
 import { Delivery } from './components/Delivery';
 import { Close, Details, Footer, Movement, Profile } from './components/Sections';
@@ -35,6 +36,7 @@ function Shop() {
         <Profile />
         <Movement />
         <Workshop />
+        <Reviews />
         <Delivery />
         <Close />
       </main>

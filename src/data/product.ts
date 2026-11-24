@@ -101,6 +101,57 @@ export const FAQ: { q: string; a: string }[] = [
 ];
 
 /**
+ * Customer reviews. The entries below are SAMPLES so the section can be
+ * designed and previewed: the site labels them "Sample" until they are
+ * replaced with real reviews (set `sample: false` on each real one, or drop
+ * the flag). Never publish invented reviews as real ones.
+ */
+export interface Review {
+  name: string;
+  city: string;
+  dial: DialId;
+  rating: 1 | 2 | 3 | 4 | 5;
+  title: string;
+  body: string;
+  date: string; // ISO date
+  verified?: boolean;
+  sample?: boolean;
+}
+
+export const REVIEWS: Review[] = [
+  {
+    name: 'Sample reviewer',
+    city: 'Sofia',
+    dial: 'slate',
+    rating: 5,
+    title: 'Example: what a five-star review looks like',
+    body: 'A real customer’s words go here, for example about how the bracelet wears, how easy the chronograph is to use, or how the watch arrived.',
+    date: '2026-11-10',
+    sample: true,
+  },
+  {
+    name: 'Sample reviewer',
+    city: 'Berlin',
+    dial: 'midnight',
+    rating: 5,
+    title: 'Example: a review about the dial',
+    body: 'Replace this with a customer’s review. Keep their own wording; short reviews of two or three sentences read best in this card.',
+    date: '2026-10-28',
+    sample: true,
+  },
+  {
+    name: 'Sample reviewer',
+    city: 'Athens',
+    dial: 'bone',
+    rating: 4,
+    title: 'Example: a four-star review',
+    body: 'Mixed reviews belong here too. Showing a four-star review with an honest small criticism makes the others more believable.',
+    date: '2026-10-15',
+    sample: true,
+  },
+];
+
+/**
  * Where we ship, how many working days the courier takes and what it costs.
  * Stand-in values: replace with the client's courier contract.
  */

@@ -19,6 +19,8 @@ const TEXT = [
   '.specs__row',
   '.figures li',
   '.parts li',
+  '.review',
+  '.reviews__summary',
   '.promises li',
   '.faq__item',
   '.footer__grid > div',
