@@ -2044,6 +2044,66 @@ em {
   font-size: 13px;
 }
 
+/* ───────────────────────── back to top ───────────────────────── */
+.totop {
+  position: fixed;
+  right: max(20px, env(safe-area-inset-right));
+  bottom: max(20px, env(safe-area-inset-bottom));
+  z-index: 45;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--ink);
+  background: rgba(19, 20, 23, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow:
+    0 0 0 1px var(--line),
+    0 12px 30px -10px rgba(0, 0, 0, 0.7);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(12px) scale(0.9);
+  transition:
+    opacity 0.35s var(--ease),
+    transform 0.35s var(--ease),
+    visibility 0s 0.35s,
+    background-color 0.2s var(--ease);
+}
+
+.totop.is-on {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition:
+    opacity 0.35s var(--ease),
+    transform 0.35s var(--ease),
+    visibility 0s,
+    background-color 0.2s var(--ease);
+}
+
+.totop svg {
+  width: 52px;
+  height: 52px;
+}
+
+.totop__arrow {
+  transition: transform 0.3s var(--ease);
+}
+
+.totop:hover {
+  background: rgba(33, 35, 40, 0.92);
+}
+
+.totop:hover .totop__arrow {
+  transform: translateY(-2px);
+}
+
+.totop:active {
+  transform: scale(0.94);
+}
+
 /* ───────────────────────── drawer ───────────────────────── */
 .drawer {
   position: fixed;

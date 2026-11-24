@@ -1,4 +1,5 @@
 import { CartProvider } from './cart/CartContext';
+import { BackToTop } from './components/BackToTop';
 import { CartDrawer } from './components/CartDrawer';
 import { Configurator } from './components/Configurator';
 import { Hero } from './components/Hero';
@@ -36,6 +37,7 @@ function Page() {
         <Close />
       </main>
       <Footer />
+      <BackToTop />
       <CartDrawer />
     </>
   );
