@@ -747,7 +747,7 @@ export function createWatchScene(canvas: HTMLCanvasElement, dial: Dial, reduced:
   moveCanvas.width = moveCanvas.height = 768;
   const moveTex = new THREE.CanvasTexture(moveCanvas);
   moveTex.colorSpace = THREE.SRGBColorSpace;
-  const moveMat = new THREE.MeshStandardMaterial({ map: moveTex, metalness: 0.55, roughness: 0.38, color: '#ffffff' });
+  const moveMat = new THREE.MeshStandardMaterial({ map: moveTex, metalness: 0.5, roughness: 0.42, color: '#dedede' });
   const movementDisc = new THREE.Mesh(new THREE.CircleGeometry(12.8, 96), moveMat);
   movementDisc.rotation.y = Math.PI; // faces -Z
   movementDisc.position.z = -6.2;
